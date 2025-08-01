@@ -1,94 +1,150 @@
 ---
-title: 'Development'
-description: 'Preview changes locally to update your docs'
+title: "Autenticação"
+description: "Autenticação com Auth0 usando Custom Database + API Sinerlog"
 ---
 
-<Info>
-  **Prerequisites**:
-  - Node.js version 19 or higher
-  - A docs repository with a `docs.json` file
-</Info>
+## 🧭  Visão Geral
 
-Follow these steps to install and run Mintlify on your operating system.
+Este sistema de autenticação combina a robustez do Auth0 com a lógica de negócio da Sinerlog, permitindo validar e autorizar usuários de maneira segura, escalável e integrada.\
+O processo é centralizado: todas as autenticações passam pelo Auth0, mas a validação real do login é feita via API privada da Sinerlog.
 
-<Steps>
-<Step title="Install the Mintlify CLI">
+---
 
-```bash
-npm i -g mint
-```
-</Step>
+## 🧩  Componentes envolvidos
 
-<Step title="Preview locally">
+| Componente                   | Função                                                                    |
+| ---------------------------- | ------------------------------------------------------------------------- |
+| **Auth0**                    | Fornece camada de identidade, sessão, regras e tokens JWT                 |
+| **Custom Database Script**   | Permite que Auth0 delegue a validação de credenciais para uma API externa |
+| **API da Sinerlog**          | Responsável por autenticar e retornar o perfil do usuário                 |
+| **Frontend (React/Next.js)** | Consome o token JWT e acessa os claims do usuário                         |
+| **Actions (Auth0)**          | Enriquecem o `idToken` com informações extras vindas da API               |
 
-Navigate to your docs directory where your `docs.json` file is located, and run the following command:
+---
 
-```bash
-mint dev
-```
+## 🔐  Etapas detalhadas do processo de login
 
-A local preview of your documentation will be available at `http://localhost:3000`.
+### 1. Acesso ao login
 
-</Step>
-</Steps>
+- O usuário acessa o frontend e é redirecionado para o Universal Login do Auth0.
+- Ele preenche o `email` e a `senha`.
 
-## Custom ports
+---
 
-By default, Mintlify uses port 3000. You can customize the port Mintlify runs on by using the `--port` flag. For example, to run Mintlify on port 3333, use this command:
+### 2. Execução do script `login()` (Custom Database)
 
-```bash
-mint dev --port 3333
-```
+- O Auth0 executa o script de autenticação customizada com o seguinte fluxo:
 
-If you attempt to run Mintlify on a port that's already in use, it will use the next available port:
+```js
+const passwordBase64 = Buffer.from(password, 'utf-8').toString('base64');
 
-```md
-Port 3000 is already in use. Trying 3001 instead.
-```
-
-## Mintlify versions
-
-Please note that each CLI release is associated with a specific version of Mintlify. If your local preview does not align with the production version, please update the CLI:
-
-```bash
-npm mint update
+axios.post('https://sinerlog-identity-backend.dev.sinerlog.log.br/api/User/authorize', {
+  email: email,
+  password: passwordBase64,
+  applicationId: 1
+})
 ```
 
-## Validating links
+- A API da Sinerlog responde com o status do login e os dados completos do usuário (ID, roles, contas, permissões, etc.).
+- O script `login()` retorna um `user_profile` para o Auth0 com todos os dados que serão usados posteriormente.
 
-The CLI can assist with validating links in your documentation. To identify any broken links, use the following command:
+---
 
-```bash
-mint broken-links
+### 3. Enriquecimento do `idToken` (Action Post Login)
+
+- Após a autenticação, uma **Action** captura o `user_profile` e adiciona claims personalizados ao `idToken`:
+
+```js
+api.idToken.setCustomClaim('https://sinerlog.app/claims', {
+  id: user.user_id,
+  email: user.email,
+  name: user.name,
+  roles: user.roles,
+  applications: user.applications,
+  accounts: user.accounts,
+  superAdmin: user.superAdmin,
+  active: user.active
+});
 ```
 
-## Deployment
+Esses dados ficam disponíveis para o frontend usar diretamente.
 
-If the deployment is successful, you should see the following:
+---
 
-<Frame>
-  <img src="/images/checks-passed.png" alt="Screenshot of a deployment confirmation message that says All checks have passed." style={{ borderRadius: '0.5rem' }} />
-</Frame>
+### 4. Redirecionamento e criação de sessão
 
-## Code formatting
+- O Auth0 gera um `idToken` e um `accessToken` e redireciona o usuário de volta para o frontend.
+- O frontend salva a sessão em memória (ou com cookies/sessão persistente, dependendo da config).
 
-We suggest using extensions on your IDE to recognize and format MDX. If you're a VSCode user, consider the [MDX VSCode extension](https://marketplace.visualstudio.com/items?itemName=unifiedjs.vscode-mdx) for syntax highlighting, and [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) for code formatting.
+---
 
-## Troubleshooting
+### 5. Validação contínua da sessão
 
-<AccordionGroup>
-  <Accordion title='Error: Could not load the "sharp" module using the darwin-arm64 runtime'>
+A cada página visitada:
 
-    This may be due to an outdated version of node. Try the following:
-    1. Remove the currently-installed version of the CLI: `npm remove -g mint`
-    2. Upgrade to Node v19 or higher.
-    3. Reinstall the CLI: `npm i -g mint`
-  </Accordion>
+- O frontend chama `auth0.getUser()` para recuperar os claims.
+- Caso o token esteja expirado, o SDK tenta **silent login** para renovação automática.
+- Se falhar, o usuário é redirecionado para o login novamente.
 
-  <Accordion title="Issue: Encountering an unknown error">
-  
-    Solution: Go to the root of your device and delete the `~/.mintlify` folder. Then run `mint dev` again.
-  </Accordion>
-</AccordionGroup>
+---
 
-Curious about what changed in the latest CLI version? Check out the [CLI changelog](https://www.npmjs.com/package/mintlify?activeTab=versions).
+## 🛡️ Segurança e Garantias
+
+- ✅ A senha nunca é armazenada ou processada no Auth0, apenas repassada para a API (via HTTPS).
+- ✅ O token gerado é assinado com RS256 e validado em todas as chamadas do frontend/backend.
+- ✅ Sessões curtas com silent login evitam login repetitivo mas garantem controle.
+- ✅ Roles, permissões e contas ficam embutidas no token e não podem ser manipuladas no client.
+
+---
+
+## 🧠 Exemplo completo de token JWT decodificado
+
+```json
+{
+  "email": "glauco@pixter.com.br",
+  "name": "Glauco",
+  "https://sinerlog.app/claims": {
+    "roles": ["Administrator"],
+    "accounts": [{ "id": 5, "name": "Master" }],
+    "applications": [{ "id": 1, "name": "Sinerlog Central" }],
+    "superAdmin": true,
+    "active": true
+  },
+  "exp": 1723562399,
+  "iat": 1723558799,
+  "sub": "auth0|abc123xyz"
+}
+```
+
+---
+
+## 🧪 Testes e fallback
+
+- O script de login foi projetado para falhar com `WrongUsernameOrPasswordError` caso a API retorne erro.
+- Caso a API esteja fora do ar, o login não é autorizado.
+- Os dados do usuário só são atualizados no Auth0 em cada novo login.
+
+---
+
+## 📚 Possíveis extensões futuras
+
+- Atualização do perfil via Action (para sync de dados)
+- Implementar MFA no Auth0 (Auth0 Guardian)
+- Adição de refresh token \+ rota de revogação
+- Envio de webhooks de login para monitoramento
+
+---
+
+## ✅ Checklist de boas práticas aplicadas
+
+- Tokens curtos e seguros (RS256)
+- Claims customizados via Action
+- Validação contínua da sessão
+- Centralização total via API da Sinerlog
+- Separação de responsabilidades: Auth0 = identidade, API = lógica
+
+---
+
+## 📞 Contato técnico
+
+Para dúvidas sobre o funcionamento, contatar o time de infraestrutura ou responsável pelo sistema de autenticação (Auth0 \+ Backend Sinerlog).
