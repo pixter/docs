@@ -1,0 +1,940 @@
+---
+title: "Biblioteca de Componentes"
+sidebarTitle: "Componentes"
+---
+
+## Visão Geral
+
+O Sinerlog Frontend Global possui uma biblioteca de componentes bem estruturada, organizada em categorias para facilitar a manutenção e reutilização. Todos os componentes seguem padrões de acessibilidade e design system consistentes.
+
+## Estrutura de Componentes
+
+### Organização por Categorias
+
+```
+src/components/
+├── application/          # Componentes específicos da aplicação
+├── base/                # Componentes base reutilizáveis
+├── custom/              # Componentes customizados
+├── dynamic/             # Componentes dinâmicos
+├── foundations/         # Ícones e elementos fundamentais
+└── layout/              # Layouts da aplicação
+```
+
+## Componentes Base
+
+### Botões
+
+#### Button Primary
+
+```typescript
+import { Button } from '@/components/base/buttons/button'
+
+const Example = () => (
+  <Button variant="primary" size="md">
+    Clique aqui
+  </Button>
+)
+```
+
+#### Button Secondary
+
+```typescript
+<Button variant="secondary" size="sm">
+  Cancelar
+</Button>
+```
+
+#### Button Outline
+
+```typescript
+<Button variant="outline" size="lg">
+  Baixar
+</Button>
+```
+
+#### Button com Ícone
+
+```typescript
+import { DownloadIcon } from '@/components/foundations/icons'
+
+<Button variant="primary" icon={<DownloadIcon />}>
+  Baixar Relatório
+</Button>
+```
+
+### Inputs
+
+#### Text Input
+
+```typescript
+import { Input } from '@/components/base/input/input'
+
+const Example = () => (
+  <Input
+    label="Nome"
+    placeholder="Digite seu nome"
+    error="Nome é obrigatório"
+    required
+  />
+)
+```
+
+#### Select
+
+```typescript
+import { Select } from '@/components/base/select/select'
+
+const Example = () => (
+  <Select
+    label="Categoria"
+    options={[
+      { value: 'admin', label: 'Administrador' },
+      { value: 'user', label: 'Usuário' },
+      { value: 'guest', label: 'Convidado' }
+    ]}
+    placeholder="Selecione uma categoria"
+  />
+)
+```
+
+#### Checkbox
+
+```typescript
+import { Checkbox } from '@/components/base/checkbox/checkbox'
+
+const Example = () => (
+  <Checkbox
+    label="Aceito os termos"
+    description="Li e aceito os termos de uso"
+    required
+  />
+)
+```
+
+#### Radio Buttons
+
+```typescript
+import { RadioGroup } from '@/components/base/radio-buttons/radio-buttons'
+
+const Example = () => (
+  <RadioGroup
+    label="Tipo de conta"
+    options={[
+      { value: 'personal', label: 'Pessoal' },
+      { value: 'business', label: 'Empresarial' }
+    ]}
+    defaultValue="personal"
+  />
+)
+```
+
+### Formulários
+
+#### Form Container
+
+```typescript
+import { Form } from '@/components/base/form/form'
+
+const Example = () => (
+  <Form onSubmit={handleSubmit}>
+    <Input label="Nome" required />
+    <Input label="Email" type="email" required />
+    <Button type="submit">Enviar</Button>
+  </Form>
+)
+```
+
+#### Form com Validação
+
+```typescript
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+
+const schema = z.object({
+  name: z.string().min(1, 'Nome é obrigatório'),
+  email: z.string().email('Email inválido')
+})
+
+const Example = () => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm({
+    resolver: zodResolver(schema)
+  })
+
+  return (
+    <Form onSubmit={handleSubmit(onSubmit)}>
+      <Input
+        {...register('name')}
+        label="Nome"
+        error={errors.name?.message}
+      />
+      <Input
+        {...register('email')}
+        label="Email"
+        type="email"
+        error={errors.email?.message}
+      />
+      <Button type="submit">Enviar</Button>
+    </Form>
+  )
+}
+```
+
+### Tabelas
+
+#### Table Básica
+
+```typescript
+import { Table } from '@/components/base/table/table'
+
+const data = [
+  { id: 1, name: 'João', email: 'joao@example.com' },
+  { id: 2, name: 'Maria', email: 'maria@example.com' }
+]
+
+const Example = () => (
+  <Table
+    data={data}
+    columns={[
+      { key: 'name', label: 'Nome' },
+      { key: 'email', label: 'Email' }
+    ]}
+  />
+)
+```
+
+#### Table com Ações
+
+```typescript
+const Example = () => (
+  <Table
+    data={data}
+    columns={[
+      { key: 'name', label: 'Nome' },
+      { key: 'email', label: 'Email' },
+      {
+        key: 'actions',
+        label: 'Ações',
+        render: (item) => (
+          <div className="flex space-x-2">
+            <Button size="sm" variant="outline">Editar</Button>
+            <Button size="sm" variant="outline" color="red">Excluir</Button>
+          </div>
+        )
+      }
+    ]}
+  />
+)
+```
+
+### Modais
+
+#### Modal Simples
+
+```typescript
+import { Modal } from '@/components/base/modals/modal'
+
+const Example = () => {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <>
+      <Button onClick={() => setIsOpen(true)}>
+        Abrir Modal
+      </Button>
+      
+      <Modal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        title="Confirmação"
+      >
+        <p>Tem certeza que deseja continuar?</p>
+        <div className="flex space-x-2 mt-4">
+          <Button onClick={() => setIsOpen(false)}>Cancelar</Button>
+          <Button variant="primary">Confirmar</Button>
+        </div>
+      </Modal>
+    </>
+  )
+}
+```
+
+#### Modal com Formulário
+
+```typescript
+const Example = () => {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={() => setIsOpen(false)}
+      title="Criar Usuário"
+      size="lg"
+    >
+      <Form onSubmit={handleSubmit}>
+        <Input label="Nome" required />
+        <Input label="Email" type="email" required />
+        <Select
+          label="Função"
+          options={[
+            { value: 'user', label: 'Usuário' },
+            { value: 'admin', label: 'Administrador' }
+          ]}
+        />
+        <div className="flex space-x-2 mt-4">
+          <Button onClick={() => setIsOpen(false)}>Cancelar</Button>
+          <Button type="submit" variant="primary">Criar</Button>
+        </div>
+      </Form>
+    </Modal>
+  )
+}
+```
+
+## Componentes de Aplicação
+
+### Navigation
+
+#### Header Navigation
+
+```typescript
+import { HeaderNavigation } from '@/components/application/app-navigation/header-navigation'
+
+const Example = () => (
+  <HeaderNavigation
+    logo={<Logo />}
+    menuItems={[
+      { label: 'Dashboard', href: '/dashboard' },
+      { label: 'Usuários', href: '/users' },
+      { label: 'Configurações', href: '/settings' }
+    ]}
+    userMenu={{
+      user: currentUser,
+      items: [
+        { label: 'Perfil', href: '/profile' },
+        { label: 'Sair', onClick: handleLogout }
+      ]
+    }}
+  />
+)
+```
+
+#### Sidebar Navigation
+
+```typescript
+import { SidebarNavigation } from '@/components/application/app-navigation/sidebar-navigation'
+
+const Example = () => (
+  <SidebarNavigation
+    items={[
+      {
+        label: 'Dashboard',
+        icon: <DashboardIcon />,
+        href: '/dashboard'
+      },
+      {
+        label: 'Usuários',
+        icon: <UsersIcon />,
+        href: '/users',
+        children: [
+          { label: 'Lista', href: '/users' },
+          { label: 'Criar', href: '/users/create' }
+        ]
+      }
+    ]}
+  />
+)
+```
+
+### Charts
+
+#### Line Chart
+
+```typescript
+import { LineChart } from '@/components/application/charts/charts-base'
+
+const data = [
+  { month: 'Jan', sales: 4000 },
+  { month: 'Fev', sales: 3000 },
+  { month: 'Mar', sales: 2000 }
+]
+
+const Example = () => (
+  <LineChart
+    data={data}
+    xKey="month"
+    yKey="sales"
+    title="Vendas Mensais"
+  />
+)
+```
+
+#### Bar Chart
+
+```typescript
+const Example = () => (
+  <BarChart
+    data={data}
+    xKey="month"
+    yKey="sales"
+    title="Vendas por Mês"
+  />
+)
+```
+
+### Forms Dinâmicos
+
+#### Dynamic Form
+
+```typescript
+import { DynamicForm } from '@/components/dynamic/dynamic-form'
+
+const fields = [
+  {
+    type: 'text',
+    name: 'name',
+    label: 'Nome',
+    required: true
+  },
+  {
+    type: 'email',
+    name: 'email',
+    label: 'Email',
+    required: true
+  },
+  {
+    type: 'select',
+    name: 'role',
+    label: 'Função',
+    options: [
+      { value: 'user', label: 'Usuário' },
+      { value: 'admin', label: 'Administrador' }
+    ]
+  }
+]
+
+const Example = () => (
+  <DynamicForm
+    fields={fields}
+    onSubmit={handleSubmit}
+    initialData={userData}
+  />
+)
+```
+
+## Componentes Customizados
+
+### FaturaTable
+
+```typescript
+import { FaturaTable } from '@/components/custom/FaturaTable'
+
+const Example = () => (
+  <FaturaTable
+    data={faturas}
+    onEdit={handleEdit}
+    onDelete={handleDelete}
+    onView={handleView}
+    filters={{
+      status: selectedStatus,
+      dateRange: selectedDateRange
+    }}
+  />
+)
+```
+
+### CustomFaturamentoEmpresa
+
+```typescript
+import { CustomFaturamentoEmpresa } from '@/components/custom/CustomFaturamentoEmpresa'
+
+const Example = () => (
+  <CustomFaturamentoEmpresa
+    empresa={empresa}
+    faturas={faturas}
+    onFaturamentoUpdate={handleUpdate}
+  />
+)
+```
+
+## Componentes Dinâmicos
+
+### Dynamic Filters
+
+```typescript
+import { DynamicFilters } from '@/components/dynamic/DynamicFilters'
+
+const filterConfig = [
+  {
+    type: 'select',
+    name: 'status',
+    label: 'Status',
+    options: [
+      { value: 'active', label: 'Ativo' },
+      { value: 'inactive', label: 'Inativo' }
+    ]
+  },
+  {
+    type: 'date-range',
+    name: 'dateRange',
+    label: 'Período'
+  },
+  {
+    type: 'search',
+    name: 'search',
+    label: 'Buscar',
+    placeholder: 'Digite para buscar...'
+  }
+]
+
+const Example = () => (
+  <DynamicFilters
+    config={filterConfig}
+    onFiltersChange={handleFiltersChange}
+    initialFilters={initialFilters}
+  />
+)
+```
+
+### Dynamic Table
+
+```typescript
+import { DynamicTable } from '@/components/dynamic/DynamicTable'
+
+const tableConfig = {
+  columns: [
+    { key: 'name', label: 'Nome', sortable: true },
+    { key: 'email', label: 'Email' },
+    { key: 'role', label: 'Função' },
+    {
+      key: 'actions',
+      label: 'Ações',
+      render: (item) => (
+        <div className="flex space-x-2">
+          <Button size="sm" onClick={() => handleEdit(item)}>
+            Editar
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => handleDelete(item)}>
+            Excluir
+          </Button>
+        </div>
+      )
+    }
+  ],
+  pagination: {
+    pageSize: 10,
+    pageSizeOptions: [5, 10, 20, 50]
+  },
+  sorting: true,
+  filtering: true
+}
+
+const Example = () => (
+  <DynamicTable
+    config={tableConfig}
+    data={data}
+    onDataChange={handleDataChange}
+  />
+)
+```
+
+## Componentes de Layout
+
+### App Layout
+
+```typescript
+import { AppLayout } from '@/components/layout/app-layout'
+
+const Example = () => (
+  <AppLayout
+    header={<HeaderNavigation />}
+    sidebar={<SidebarNavigation />}
+    footer={<Footer />}
+  >
+    <main>
+      {/* Conteúdo da página */}
+    </main>
+  </AppLayout>
+)
+```
+
+### Page Layout
+
+```typescript
+import { PageLayout } from '@/components/layout/page-layout'
+
+const Example = () => (
+  <PageLayout
+    title="Usuários"
+    subtitle="Gerencie os usuários do sistema"
+    actions={
+      <Button variant="primary">
+        <PlusIcon />
+        Novo Usuário
+      </Button>
+    }
+  >
+    <UserList />
+  </PageLayout>
+)
+```
+
+## Componentes de Fundação
+
+### Ícones
+
+```typescript
+import { 
+  CheckIcon, 
+  UserIcon, 
+  SettingsIcon,
+  DownloadIcon,
+  UploadIcon 
+} from '@/components/foundations/icons'
+
+const Example = () => (
+  <div className="flex space-x-2">
+    <CheckIcon className="w-5 h-5 text-green-500" />
+    <UserIcon className="w-5 h-5 text-blue-500" />
+    <SettingsIcon className="w-5 h-5 text-gray-500" />
+  </div>
+)
+```
+
+### Logo
+
+```typescript
+import { Logo } from '@/components/foundations/logo/logo'
+
+const Example = () => (
+  <Logo className="h-8 w-auto" />
+)
+```
+
+### Loading States
+
+```typescript
+import { LoadingSpinner } from '@/components/base/loading-indicator/loading-indicator'
+
+const Example = () => (
+  <div className="flex items-center justify-center">
+    <LoadingSpinner size="lg" />
+  </div>
+)
+```
+
+## Padrões de Componentes
+
+### Props Interface
+
+```typescript
+interface ComponentProps {
+  // Props obrigatórias
+  title: string
+  data: DataType[]
+  
+  // Props opcionais
+  className?: string
+  variant?: 'primary' | 'secondary' | 'outline'
+  size?: 'sm' | 'md' | 'lg'
+  
+  // Event handlers
+  onClick?: () => void
+  onChange?: (value: string) => void
+  
+  // Children
+  children?: React.ReactNode
+}
+```
+
+### Componente com Variants
+
+```typescript
+import { cva, type VariantProps } from 'class-variance-authority'
+
+const buttonVariants = cva(
+  'inline-flex items-center justify-center rounded-md font-medium transition-colors',
+  {
+    variants: {
+      variant: {
+        primary: 'bg-blue-500 text-white hover:bg-blue-600',
+        secondary: 'bg-gray-500 text-white hover:bg-gray-600',
+        outline: 'border border-gray-300 bg-transparent hover:bg-gray-50'
+      },
+      size: {
+        sm: 'h-8 px-3 text-sm',
+        md: 'h-10 px-4 text-sm',
+        lg: 'h-12 px-6 text-base'
+      }
+    },
+    defaultVariants: {
+      variant: 'primary',
+      size: 'md'
+    }
+  }
+)
+
+interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  children: React.ReactNode
+}
+
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, ...props }, ref) => {
+    return (
+      <button
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+```
+
+### Componente com ForwardRef
+
+```typescript
+import React from 'react'
+
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string
+  error?: string
+  helperText?: string
+}
+
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, label, error, helperText, ...props }, ref) => {
+    return (
+      <div className="space-y-1">
+        {label && (
+          <label className="block text-sm font-medium text-gray-700">
+            {label}
+          </label>
+        )}
+        <input
+          className={cn(
+            'block w-full rounded-md border-gray-300 shadow-sm',
+            error && 'border-red-300',
+            className
+          )}
+          ref={ref}
+          {...props}
+        />
+        {error && (
+          <p className="text-sm text-red-600">{error}</p>
+        )}
+        {helperText && !error && (
+          <p className="text-sm text-gray-500">{helperText}</p>
+        )}
+      </div>
+    )
+  }
+)
+```
+
+## Acessibilidade
+
+### ARIA Labels
+
+```typescript
+const Example = () => (
+  <button
+    aria-label="Fechar modal"
+    aria-describedby="modal-description"
+    onClick={handleClose}
+  >
+    <XIcon />
+  </button>
+)
+```
+
+### Keyboard Navigation
+
+```typescript
+const Example = () => {
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      handleClick()
+    }
+  }
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      onClick={handleClick}
+    >
+      Clique aqui
+    </div>
+  )
+}
+```
+
+### Focus Management
+
+```typescript
+const Example = () => {
+  const modalRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (isOpen && modalRef.current) {
+      const focusableElements = modalRef.current.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )
+      const firstElement = focusableElements[0] as HTMLElement
+      firstElement?.focus()
+    }
+  }, [isOpen])
+
+  return (
+    <div ref={modalRef}>
+      {/* Conteúdo do modal */}
+    </div>
+  )
+}
+```
+
+## Performance
+
+### React.memo
+
+```typescript
+const UserCard = React.memo<UserCardProps>(({ user, onEdit, onDelete }) => {
+  return (
+    <div>
+      <h3>{user.name}</h3>
+      <p>{user.email}</p>
+      <button onClick={() => onEdit(user)}>Editar</button>
+      <button onClick={() => onDelete(user.id)}>Excluir</button>
+    </div>
+  )
+})
+```
+
+### Lazy Loading
+
+```typescript
+import dynamic from 'next/dynamic'
+
+const HeavyComponent = dynamic(() => import('./HeavyComponent'), {
+  loading: () => <LoadingSpinner />,
+  ssr: false
+})
+```
+
+## Testes de Componentes
+
+### Teste Básico
+
+```typescript
+import { render, screen } from '@testing-library/react'
+import { Button } from './Button'
+
+describe('Button', () => {
+  it('should render with correct text', () => {
+    render(<Button>Clique aqui</Button>)
+    expect(screen.getByText('Clique aqui')).toBeInTheDocument()
+  })
+
+  it('should call onClick when clicked', () => {
+    const handleClick = jest.fn()
+    render(<Button onClick={handleClick}>Clique aqui</Button>)
+    
+    screen.getByText('Clique aqui').click()
+    expect(handleClick).toHaveBeenCalledTimes(1)
+  })
+})
+```
+
+### Teste com User Events
+
+```typescript
+import userEvent from '@testing-library/user-event'
+
+describe('Form', () => {
+  it('should submit form with user input', async () => {
+    const user = userEvent.setup()
+    const handleSubmit = jest.fn()
+    
+    render(<Form onSubmit={handleSubmit} />)
+    
+    await user.type(screen.getByLabelText('Nome'), 'João')
+    await user.type(screen.getByLabelText('Email'), 'joao@example.com')
+    await user.click(screen.getByText('Enviar'))
+    
+    expect(handleSubmit).toHaveBeenCalledWith({
+      name: 'João',
+      email: 'joao@example.com'
+    })
+  })
+})
+```
+
+## Documentação de Componentes
+
+### Storybook (Recomendado)
+
+```typescript
+// Button.stories.tsx
+import type { Meta, StoryObj } from '@storybook/react'
+import { Button } from './Button'
+
+const meta: Meta<typeof Button> = {
+  title: 'Components/Button',
+  component: Button,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+  argTypes: {
+    variant: {
+      control: { type: 'select' },
+      options: ['primary', 'secondary', 'outline'],
+    },
+    size: {
+      control: { type: 'select' },
+      options: ['sm', 'md', 'lg'],
+    },
+  },
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Primary: Story = {
+  args: {
+    children: 'Button',
+    variant: 'primary',
+  },
+}
+
+export const Secondary: Story = {
+  args: {
+    children: 'Button',
+    variant: 'secondary',
+  },
+}
+```
+
+## Conclusão
+
+Esta biblioteca de componentes fornece:
+
+- **Consistência**: Design system unificado
+- **Reutilização**: Componentes modulares
+- **Acessibilidade**: Padrões ARIA implementados
+- **Performance**: Otimizações de renderização
+- **Testabilidade**: Componentes testáveis
+- **Documentação**: Exemplos e guias de uso
+
+Para contribuir com novos componentes, siga os padrões estabelecidos e adicione testes e documentação apropriados.
