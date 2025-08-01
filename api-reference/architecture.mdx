@@ -1,0 +1,419 @@
+---
+title: Arquitetura do Sinerlog Frontend Global
+---
+
+O frontend do projeto adota uma arquitetura baseada em funcionalidades (feature-based) com clara separação de responsabilidades, inspirada nos princípios da **Clean Architecture** e do padrão **MVVM** (Model-View-ViewModel).
+
+### Filosofia Arquitetural
+
+Em vez de organizar o código somente por camadas técnicas, ele é estruturado em torno de **features** ou módulos de funcionalidades. Isso garante:
+
+- **Baixo Acoplamento**: Cada funcionalidade independe ao máximo das outras
+- **Alta Coesão**: Código relacionado a uma mesma feature permanece agrupado
+- **Facilidade de Manutenção**: Problemas podem ser isolados e resolvidos rapidamente
+- **Evolução Simplificada**: Novas funcionalidades podem ser adicionadas com impacto mínimo
+
+### Combinação de Conceitos
+
+Esta abordagem combina conceitos de arquitetura em camadas com MVVM para separar a lógica de negócios da interface:
+
+- **View**: Componentes React (interface do usuário)
+- **ViewModel**: Lógica de apresentação e estado (hooks ou controladores)
+- **Model**: Dados ou regras de negócio (estruturas tipadas, resultados de API)
+
+## Princípios da Clean Architecture
+
+### Separação de Responsabilidades
+
+A UI permanece desacoplada da lógica de aplicação:
+
+- A **View** reage aos dados expostos pela **ViewModel**
+- A **ViewModel** manipula os **Models** (dados) e não detalhes de UI
+- Essa separação torna o código mais testável e modular
+
+### Limites Claros Entre Camadas
+
+Cada funcionalidade (feature) do sistema é tratada como um módulo independente, contendo:
+
+- **Componentes de UI**: Interface visual
+- **Estado Local**: Gerenciamento de estado
+- **Regras de Validação**: Validação de dados
+- **Chamadas à API**: Comunicação com backend
+- **Tipos e Schemas**: Definições de dados
+
+### Isolamento de Detalhes
+
+Componentes visuais não acessam diretamente detalhes de banco de dados ou APIs. Eles se comunicam com serviços ou camadas de dados através de interfaces bem definidas.
+
+## Padrão MVVM
+
+### Model (Modelo)
+
+Representa os dados ou regras de negócio:
+
+```typescript
+// Exemplo de Model
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+}
+
+interface UserRepository {
+  getUser(id: string): Promise<User>;
+  updateUser(user: User): Promise<void>;
+}
+```
+
+### View (Visualização)
+
+Componentes React que representam a interface do usuário:
+
+```typescript
+// Exemplo de View
+const UserProfile: React.FC = () => {
+  const { user, isLoading, updateUser } = useUserProfile();
+  
+  if (isLoading) return <LoadingSpinner />;
+  
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      <p>{user.email}</p>
+      <button onClick={() => updateUser(user)}>
+        Atualizar
+      </button>
+    </div>
+  );
+};
+```
+
+### ViewModel (Modelo de Visualização)
+
+Hooks ou controladores que encapsulam a lógica de apresentação:
+
+```typescript
+// Exemplo de ViewModel
+const useUserProfile = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  const fetchUser = async (id: string) => {
+    setIsLoading(true);
+    try {
+      const userData = await userRepository.getUser(id);
+      setUser(userData);
+    } catch (error) {
+      console.error('Erro ao carregar usuário:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const updateUser = async (updatedUser: User) => {
+    try {
+      await userRepository.updateUser(updatedUser);
+      setUser(updatedUser);
+      toast.success('Usuário atualizado com sucesso');
+    } catch (error) {
+      toast.error('Erro ao atualizar usuário');
+    }
+  };
+  
+  return { user, isLoading, updateUser };
+};
+```
+
+## Organização de Pastas
+
+### Estrutura Modular
+
+O projeto é organizado de forma modular, espelhando a arquitetura por funcionalidades:
+
+```
+src/
+├── app/                    # Páginas e rotas (Next.js App Router)
+├── components/             # Componentes compartilhados
+│   ├── application/        # Componentes específicos da aplicação
+│   ├── base/              # Componentes base reutilizáveis
+│   ├── custom/            # Componentes customizados
+│   ├── dynamic/           # Componentes dinâmicos
+│   ├── foundations/       # Ícones e elementos fundamentais
+│   └── layout/            # Layouts da aplicação
+├── features/              # Módulos de funcionalidade
+│   ├── account/           # Feature de conta do usuário
+│   ├── currency-input/    # Feature de input de moeda
+│   ├── dynamic-data/      # Feature de dados dinâmicos
+│   ├── dynamic-form/      # Feature de formulários dinâmicos
+│   ├── dynamic-table/     # Feature de tabelas dinâmicas
+│   ├── empresa-faturamento/ # Feature de faturamento
+│   ├── faturas/           # Feature de faturas
+│   ├── i18n/              # Feature de internacionalização
+│   └── search/            # Feature de busca
+├── hooks/                 # Hooks compartilhados
+├── i18n/                  # Configurações de internacionalização
+├── lib/                   # Bibliotecas e configurações
+├── providers/             # Provedores de contexto
+├── styles/                # Estilos globais
+└── utils/                 # Utilitários
+```
+
+### Estrutura de Features
+
+Cada feature segue uma estrutura padronizada:
+
+```
+features/feature-name/
+├── domain/                # Camada de domínio
+│   ├── entities/          # Entidades de negócio
+│   ├── repositories/      # Interfaces de repositórios
+│   └── use-cases/         # Casos de uso
+├── infrastructure/         # Camada de infraestrutura
+│   ├── repositories/      # Implementações de repositórios
+│   └── services/          # Serviços externos
+├── presentation/           # Camada de apresentação
+│   ├── components/        # Componentes React
+│   ├── hooks/             # Hooks customizados
+│   └── view-models/       # ViewModels
+└── shared/                # Recursos compartilhados
+    ├── types/             # Tipos TypeScript
+    └── utils/             # Utilitários
+```
+
+## Exemplo Prático: Feature de Faturas
+
+### Domain Layer
+
+```typescript
+// features/faturas/domain/entities/fatura.ts
+export interface Fatura {
+  id: string;
+  numero: string;
+  valor: number;
+  dataVencimento: Date;
+  status: FaturaStatus;
+  cliente: Cliente;
+}
+
+// features/faturas/domain/repositories/fatura-repository.ts
+export interface FaturaRepository {
+  getFaturas(filters: FaturaFilters): Promise<Fatura[]>;
+  getFaturaById(id: string): Promise<Fatura>;
+  createFatura(fatura: CreateFaturaRequest): Promise<Fatura>;
+  updateFatura(id: string, updates: UpdateFaturaRequest): Promise<Fatura>;
+}
+
+// features/faturas/domain/use-cases/get-faturas.ts
+export class GetFaturasUseCase {
+  constructor(private faturaRepository: FaturaRepository) {}
+  
+  async execute(filters: FaturaFilters): Promise<Fatura[]> {
+    return this.faturaRepository.getFaturas(filters);
+  }
+}
+```
+
+### Infrastructure Layer
+
+```typescript
+// features/faturas/infrastructure/repositories/supabase-fatura-repository.ts
+export class SupabaseFaturaRepository implements FaturaRepository {
+  constructor(private supabase: SupabaseClient) {}
+  
+  async getFaturas(filters: FaturaFilters): Promise<Fatura[]> {
+    let query = this.supabase
+      .from('faturas')
+      .select('*, cliente(*)');
+    
+    if (filters.status) {
+      query = query.eq('status', filters.status);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) throw new Error('Erro ao buscar faturas');
+    
+    return data.map(this.mapToFatura);
+  }
+  
+  private mapToFatura(data: any): Fatura {
+    return {
+      id: data.id,
+      numero: data.numero,
+      valor: data.valor,
+      dataVencimento: new Date(data.data_vencimento),
+      status: data.status,
+      cliente: data.cliente
+    };
+  }
+}
+```
+
+### Presentation Layer
+
+```typescript
+// features/faturas/presentation/hooks/use-faturas.ts
+export const useFaturas = (filters: FaturaFilters) => {
+  const [faturas, setFaturas] = useState<Fatura[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  const fetchFaturas = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const faturaRepository = new SupabaseFaturaRepository(supabase);
+      const getFaturasUseCase = new GetFaturasUseCase(faturaRepository);
+      const data = await getFaturasUseCase.execute(filters);
+      setFaturas(data);
+    } catch (err) {
+      setError('Erro ao carregar faturas');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [filters]);
+  
+  useEffect(() => {
+    fetchFaturas();
+  }, [fetchFaturas]);
+  
+  return { faturas, isLoading, error, refetch: fetchFaturas };
+};
+
+// features/faturas/presentation/components/fatura-list.tsx
+export const FaturaList: React.FC<{ filters: FaturaFilters }> = ({ filters }) => {
+  const { faturas, isLoading, error } = useFaturas(filters);
+  
+  if (isLoading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage message={error} />;
+  
+  return (
+    <div className="space-y-4">
+      {faturas.map(fatura => (
+        <FaturaCard key={fatura.id} fatura={fatura} />
+      ))}
+    </div>
+  );
+};
+```
+
+## Benefícios da Arquitetura
+
+### Desenvolvimento Paralelo
+
+Múltiplos desenvolvedores podem trabalhar simultaneamente em features diferentes sem gerar muitos conflitos.
+
+### Testabilidade
+
+A separação clara entre camadas facilita a criação de testes unitários e de integração.
+
+### Manutenibilidade
+
+Alterar uma regra de negócio ou endpoint afeta principalmente a camada de serviço/modelo da feature, enquanto a interface permanece intacta.
+
+### Escalabilidade
+
+Novas features podem ser desenvolvidas isoladamente e integradas adicionando novas pastas em `features/` e registrando rotas em `app/`.
+
+### Reutilização
+
+Componentes e lógica podem ser reutilizados entre features através da pasta `components/` e `hooks/`.
+
+## Integração com Next.js
+
+### App Router
+
+O Next.js 14 com App Router permite uma organização flexível das rotas:
+
+```typescript
+// app/faturas/page.tsx
+export default function FaturasPage() {
+  return (
+    <div>
+      <h1>Faturas</h1>
+      <FaturaList filters={{}} />
+    </div>
+  );
+}
+
+// app/faturas/[id]/page.tsx
+export default function FaturaDetailPage({ params }: { params: { id: string } }) {
+  return (
+    <div>
+      <FaturaDetail id={params.id} />
+    </div>
+  );
+}
+```
+
+### Server Components
+
+Aproveitamos os Server Components do Next.js para renderização no servidor quando apropriado:
+
+```typescript
+// app/dashboard/page.tsx
+export default async function DashboardPage() {
+  // Dados carregados no servidor
+  const initialData = await getDashboardData();
+  
+  return (
+    <DashboardClient initialData={initialData} />
+  );
+}
+```
+
+## Gerenciamento de Estado
+
+### Filosofia Distribuída
+
+Não usamos frameworks tradicionais de gerenciamento de estado global (como Redux). Em vez disso:
+
+- **Estado Local**: Cada componente gerencia seu próprio estado
+- **Hooks Customizados**: Encapsulam lógica de estado complexa
+- **Context API**: Para estado compartilhado quando necessário
+- **Props**: Para comunicação entre componentes
+
+### Exemplo de Estado Distribuído
+
+```typescript
+// features/auth/presentation/hooks/use-auth.ts
+export const useAuth = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  const login = async (credentials: LoginCredentials) => {
+    // Lógica de login
+  };
+  
+  const logout = async () => {
+    // Lógica de logout
+  };
+  
+  return { user, isLoading, login, logout };
+};
+
+// features/auth/presentation/providers/auth-provider.tsx
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const auth = useAuth();
+  
+  return (
+    <AuthContext.Provider value={auth}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+```
+
+## Conclusão
+
+Esta arquitetura proporciona:
+
+- **Flexibilidade**: Facilita mudanças e evolução do sistema
+- **Clareza**: Código organizado e fácil de entender
+- **Produtividade**: Desenvolvimento mais eficiente
+- **Qualidade**: Facilita testes e manutenção
+- **Escalabilidade**: Suporta crescimento do projeto
+
+A combinação de Clean Architecture, MVVM e organização feature-based cria uma base sólida para o desenvolvimento de aplicações web modernas e sustentáveis. 
