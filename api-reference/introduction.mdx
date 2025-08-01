@@ -3,83 +3,289 @@ title: "Introdução"
 description: "Introdução à API Frontend – Sinerlog"
 ---
 
-Bem-vindo à documentação oficial da **API de Frontend da Sinerlog**. Esta documentação tem como objetivo orientar desenvolvedores e integradores sobre **como consumir os dados e serviços expostos ao frontend**, garantindo consistência, segurança e alinhamento com as regras de negócio da plataforma Sinerlog.
+## Visão Geral
 
----
+O **Sinerlog Frontend Global** é uma aplicação web moderna desenvolvida para unificar todos os frontends da Sinerlog em uma única plataforma. Este projeto representa a evolução da arquitetura frontend da empresa, focando em padronização, componentização e dinamismo.
 
-## 🎯  Propósito da API
+### Objetivo Principal
 
-A API frontend foi desenhada para:
+O objetivo central deste frontend é consolidar todos os sistemas da Sinerlog em uma única aplicação, eliminando a fragmentação de interfaces e proporcionando uma experiência consistente para usuários e desenvolvedores.
 
-- Expor **dados da sessão autenticada** (usuário, permissões, contas, aplicações).
-- Fornecer **informações contextuais** para personalizar a experiência da interface (ex: menus, roles, configurações de exibição).
-- Permitir **operações específicas** que não dependem diretamente da API de backend, mas que afetam a UI.
-- Servir como ponte entre **Auth0 (autenticação)** e o renderizador do frontend (React, Next.js, etc).
+### Principais Benefícios
 
----
+- **Unificação**: Todos os sistemas em uma única aplicação
+- **Padronização**: Componentes e padrões consistentes
+- **Componentização**: Reutilização máxima de código
+- **Dinamismo**: Interface adaptável e responsiva
+- **Manutenibilidade**: Arquitetura limpa e organizada
 
-## 🔐 Acesso e segurança
+## Arquitetura
 
-Todas as rotas são protegidas por autenticação OAuth2, usando **Auth0 com idToken JWT**.\
-O token deve ser incluído no header `Authorization` como:
+### Filosofia Arquitetural
+
+O projeto adota uma arquitetura **feature-based** com clara separação de responsabilidades, inspirada nos princípios da **Clean Architecture** e do padrão **MVVM** (Model-View-ViewModel).
+
+### Princípios Fundamentais
+
+- **Baixo Acoplamento**: Cada funcionalidade independe ao máximo das outras
+- **Alta Coesão**: Código relacionado permanece agrupado
+- **Testabilidade**: Estrutura que facilita testes unitários e de integração
+- **Escalabilidade**: Facilita adição de novas funcionalidades
+
+### Organização por Features
+
+Em vez de organizar o código somente por camadas técnicas, ele é estruturado em torno de **features** ou módulos de funcionalidades. Isso garante:
+
+- **Isolamento**: Problemas podem ser isolados e resolvidos rapidamente
+- **Desenvolvimento Paralelo**: Múltiplos desenvolvedores podem trabalhar simultaneamente
+- **Manutenção Simplificada**: Alterações têm impacto mínimo em outras partes
+
+## Tecnologias Core
+
+### Stack Principal
+
+- **Next.js 14.2.5**: Framework React com App Router
+- **React 18.3.1**: Biblioteca de UI com renderização concorrente
+- **TypeScript 5.8.3**: Tipagem estática para segurança
+
+### Estilização
+
+- **Tailwind CSS 4.1.11**: Framework CSS utilitário
+- **Next Themes**: Suporte a temas claro/escuro
+- **Framer Motion**: Animações e transições fluidas
+
+### Componentes e Acessibilidade
+
+- **React Aria**: Componentes acessíveis com ARIA
+- **UntitledUI Icons**: Biblioteca de ícones SVG
+- **React Aria Components**: Componentes prontos para uso
+
+## Funcionalidades Principais
+
+### Autenticação e Backend
+
+- **Auth0**: Autenticação segura e padronizada
+- **Supabase**: Backend-as-a-Service com PostgreSQL
+- **Node Fetch**: Requisições HTTP isomórficas
+
+### Internacionalização
+
+- **Next Intl**: Suporte a múltiplos idiomas
+- **React Intl**: Formatação avançada
+- **Crowdin**: Integração com plataforma de tradução
+
+### Dados e Formulários
+
+- **Zod**: Validação de schemas
+- **React IMask**: Máscaras para campos
+- **React Hotkeys Hook**: Atalhos de teclado
+
+### Visualização
+
+- **Recharts**: Gráficos declarativos
+- **QR Code Styling**: Códigos QR estilizados
+
+## Estado e Navegação
+
+### Gerenciamento de Estado
+
+- **MVVM**: Estado local encapsulado por hooks
+- **Context API**: Estado compartilhado quando necessário
+- **Sem Redux**: Filosofia de estado distribuído
+
+### Experiência do Usuário
+
+- **NProgress**: Barra de progresso em navegação
+- **Sonner**: Notificações toast
+- **Animações**: Transições suaves com Framer Motion
+
+## Qualidade e Testes
+
+### Testes Automatizados
+
+- **Jest 30.0.5**: Framework de testes
+- **React Testing Library**: Testes orientados ao usuário
+- **JSDOM**: Ambiente de simulação de browser
+
+### Ferramentas de Desenvolvimento
+
+- **Prettier**: Formatação automática de código
+- **PostCSS**: Pipeline de CSS
+- **Babel**: Transformações quando necessário
+
+## Estrutura do Projeto
 
 ```
-Authorization: Bearer <seu_token_aqui>
+src/
+├── app/                    # Páginas e rotas (Next.js App Router)
+├── components/             # Componentes compartilhados
+│   ├── application/        # Componentes específicos da aplicação
+│   ├── base/              # Componentes base reutilizáveis
+│   ├── custom/            # Componentes customizados
+│   ├── dynamic/           # Componentes dinâmicos
+│   ├── foundations/       # Ícones e elementos fundamentais
+│   └── layout/            # Layouts da aplicação
+├── features/              # Módulos de funcionalidade
+│   ├── account/           # Feature de conta do usuário
+│   ├── currency-input/    # Feature de input de moeda
+│   ├── dynamic-data/      # Feature de dados dinâmicos
+│   ├── dynamic-form/      # Feature de formulários dinâmicos
+│   ├── dynamic-table/     # Feature de tabelas dinâmicas
+│   ├── empresa-faturamento/ # Feature de faturamento
+│   ├── faturas/           # Feature de faturas
+│   ├── i18n/              # Feature de internacionalização
+│   └── search/            # Feature de busca
+├── hooks/                 # Hooks compartilhados
+├── i18n/                  # Configurações de internacionalização
+├── lib/                   # Bibliotecas e configurações
+├── providers/             # Provedores de contexto
+├── styles/                # Estilos globais
+└── utils/                 # Utilitários
 ```
 
-A API validará o token antes de responder a qualquer solicitação.
+## Desenvolvimento
+
+### Pré-requisitos
+
+- **Node.js**: Versão 18 ou superior
+- **Bun**: Runtime JavaScript (recomendado)
+- **Git**: Controle de versão
+
+### Comandos Principais
+
+```bash
+# Instalar dependências
+bun install
+
+# Executar em desenvolvimento
+bun run dev
+
+# Executar testes
+bun run test
+
+# Build para produção
+bun run build
+
+# Formatar código
+bun run format
+```
+
+### Variáveis de Ambiente
+
+O projeto utiliza variáveis de ambiente para configurações sensíveis:
+
+```env
+# Auth0
+AUTH0_SECRET=
+AUTH0_BASE_URL=
+AUTH0_ISSUER_BASE_URL=
+AUTH0_CLIENT_ID=
+AUTH0_CLIENT_SECRET=
+
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+
+# Crowdin
+CROWDIN_API_TOKEN=
+CROWDIN_PROJECT_ID=
+```
+
+## Contribuição
+
+### Padrões de Código
+
+- **TypeScript**: Todo código deve ser tipado
+- **Prettier**: Formatação automática
+- **ESLint**: Linting de código
+- **Conventional Commits**: Padrão de commits
+
+### Estrutura de Features
+
+Cada nova feature deve seguir a estrutura:
+
+```
+features/nova-feature/
+├── domain/
+│   ├── entities/
+│   ├── repositories/
+│   └── use-cases/
+├── infrastructure/
+│   ├── repositories/
+│   └── services/
+├── presentation/
+│   ├── components/
+│   ├── hooks/
+│   └── view-models/
+└── shared/
+    ├── types/
+    └── utils/
+```
+
+### Testes
+
+- **Testes Unitários**: Para lógica de negócio
+- **Testes de Componentes**: Para componentes React
+- **Testes de Integração**: Para APIs e serviços
+
+## Deploy e Infraestrutura
+
+### Ambientes
+
+- **Desenvolvimento**: Local com hot reload
+- **Staging**: Ambiente de testes
+- **Produção**: Ambiente final
+
+### CI/CD
+
+- **Build Automatizado**: A cada push
+- **Testes Automatizados**: Validação de qualidade
+- **Deploy Automatizado**: Após testes aprovados
+
+## Performance
+
+### Otimizações
+
+- **Code Splitting**: Carregamento sob demanda
+- **Image Optimization**: Otimização automática de imagens
+- **Bundle Analysis**: Análise de tamanho de bundle
+- **Caching**: Estratégias de cache
+
+### Métricas
+
+- **Core Web Vitals**: LCP, FID, CLS
+- **Bundle Size**: Tamanho dos bundles
+- **Load Time**: Tempo de carregamento
+
+## Segurança
+
+### Práticas
+
+- **HTTPS**: Comunicação segura
+- **CORS**: Configuração adequada
+- **CSP**: Content Security Policy
+- **Sanitização**: Limpeza de dados
+
+### Autenticação
+
+- **Auth0**: Provedor de identidade
+- **JWT**: Tokens seguros
+- **Session Management**: Gerenciamento de sessão
+
+## Suporte e Manutenção
+
+### Documentação
+
+- **README**: Visão geral do projeto
+- **API Docs**: Documentação de APIs
+- **Component Docs**: Documentação de componentes
+- **Guides**: Guias de desenvolvimento
+
+### Monitoramento
+
+- **Error Tracking**: Rastreamento de erros
+- **Performance Monitoring**: Monitoramento de performance
+- **Analytics**: Métricas de uso
 
 ---
-
-## 📦 O que você encontrará nesta documentação
-
-- 📘 **Exemplos de uso com fetch/axios**
-- 🛠️ **Rotas públicas e privadas**
-- 🔒 **Middleware de segurança e controle de roles**
-- 👤 **Formato de payload do usuário**
-- 🧠 **Boas práticas de cache, revalidação e carregamento otimizado**
-- 🧪 **Casos de uso para SSR e SSG com Next.js**
-- 📚 **Modelos de resposta (schemas)**
-
----
-
-## 🧭 Estrutura das páginas
-
-A documentação está dividida em seções intuitivas:
-
-| Seção                       | Conteúdo                                             |
-| --------------------------- | ---------------------------------------------------- |
-| **Autenticação**            | Como recuperar dados do usuário autenticado          |
-| **Perfil do Usuário**       | Dados completos de perfil, roles, contas             |
-| **Autorização**             | Como validar permissões no frontend                  |
-| **Utilitários de Frontend** | Endpoints que ajudam na renderização ou configuração |
-| **Erros comuns**            | Códigos de status e mensagens esperadas              |
-
----
-
-## 🚧 Aviso importante
-
-Esta API **não deve ser confundida com a API de backend** da Sinerlog, que lida com lógica de negócio, persistência e integrações externas.\
-A API frontend é voltada exclusivamente para **suporte à camada de apresentação** e segurança de interface.
-
----
-
-## 🧱 Requisitos
-
-- Cliente OAuth2 válido (via Auth0)
-- Frontend compatível com JWT
-- Conexão HTTPS
-
----
-
-## 🛠️ Stack envolvida
-
-- Auth0 (Custom DB \+ Actions)
-- Next.js 14 / React 18
-- Token JWT com claims customizados
-- Integração com sessão segura
-- Supabase opcional para dados adicionais
-
----
-
-Se tiver dúvidas, consulte a seção de **FAQ** ou entre em contato com o time de frontend Sinerlog.
