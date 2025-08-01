@@ -1,5 +1,999 @@
 ---
-title: 'New file'
-description: 'Description of your new file.'
+title: "Tecnologias do Sinerlog Frontend Global"
+sidebarTitle: "Tecnologias"
 ---
 
+## Stack Tecnológica
+
+O Sinerlog Frontend Global utiliza uma stack moderna e robusta, escolhida para proporcionar performance, escalabilidade e experiência de desenvolvimento superior.
+
+## Tecnologias Core
+
+### Next.js 14.2.5
+
+**Framework principal React** que estrutura toda a aplicação.
+
+#### Características Principais
+
+- **App Router**: Sistema de roteamento avançado com suporte a layouts aninhados
+- **Renderização Híbrida**: SSR, SSG e CSR conforme necessidade
+- **Server Components**: Renderização no servidor para melhor performance
+- **Client Components**: Interatividade no lado do cliente
+- **Otimização Automática**: Imagens, fontes e assets otimizados
+- **Bundling Inteligente**: Code splitting automático
+
+#### Configuração
+
+```typescript
+// next.config.js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    appDir: true,
+  },
+  images: {
+    domains: ['your-domain.com'],
+  },
+  i18n: {
+    locales: ['pt-BR', 'en'],
+    defaultLocale: 'pt-BR',
+  },
+}
+
+module.exports = nextConfig
+```
+
+#### Benefícios
+
+- **SEO Otimizado**: Renderização no servidor para melhor indexação
+- **Performance**: Carregamento rápido e otimizações automáticas
+- **Developer Experience**: Hot reload e debugging avançado
+- **Escalabilidade**: Suporte a aplicações de grande porte
+
+### React 18.3.1
+
+**Biblioteca de UI** na qual todo o frontend é baseado.
+
+#### Recursos Modernos
+
+- **Concurrent Features**: Renderização não bloqueante
+- **Suspense**: Carregamento progressivo de componentes
+- **Automatic Batching**: Otimização de re-renders
+- **Transitions**: Animações suaves entre estados
+- **Server Components**: Renderização no servidor
+
+#### Exemplo de Uso
+
+```typescript
+import { Suspense, useState, useTransition } from 'react'
+
+const UserProfile = () => {
+  const [isPending, startTransition] = useTransition()
+  const [user, setUser] = useState(null)
+
+  const updateUser = (newUser) => {
+    startTransition(() => {
+      setUser(newUser)
+    })
+  }
+
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <UserDetails user={user} />
+    </Suspense>
+  )
+}
+```
+
+### TypeScript 5.8.3
+
+**Superset do JavaScript** que adiciona tipagem estática.
+
+#### Benefícios
+
+- **Segurança de Tipos**: Erros capturados em tempo de compilação
+- **IntelliSense**: Autocompletar e refatoração avançada
+- **Documentação Viva**: Tipos servem como documentação
+- **Refatoração Segura**: Mudanças com validação automática
+
+#### Configuração
+
+```json
+// tsconfig.json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["dom", "dom.iterable", "es6"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+```
+
+## Estilização e UI
+
+### Tailwind CSS 4.1.11
+
+**Framework CSS utilitário** para desenvolvimento rápido e consistente.
+
+#### Características
+
+- **Utility-First**: Classes utilitárias para estilização rápida
+- **Responsive Design**: Breakpoints integrados
+- **Dark Mode**: Suporte nativo a temas
+- **Customização**: Tema personalizado para a marca
+- **Tree Shaking**: CSS não utilizado é removido
+
+#### Configuração
+
+```javascript
+// tailwind.config.js
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          50: '#eff6ff',
+          500: '#3b82f6',
+          900: '#1e3a8a',
+        },
+        secondary: {
+          50: '#f8fafc',
+          500: '#64748b',
+          900: '#0f172a',
+        },
+      },
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+      },
+    },
+  },
+  plugins: [
+    require('@tailwindcss/typography'),
+    require('@tailwindcss/forms'),
+  ],
+}
+```
+
+#### Plugins Utilizados
+
+- **@tailwindcss/typography**: Estilos tipográficos para conteúdo rico
+- **@tailwindcss/forms**: Estilos para formulários
+- **@tailwindcss/animate**: Animações CSS
+- **tailwind-merge**: Mesclagem inteligente de classes
+- **@tailwindcss/react-aria-components**: Componentes acessíveis
+
+### Next Themes
+
+**Gerenciamento de temas** para suporte a modo claro/escuro.
+
+#### Implementação
+
+```typescript
+// providers/theme.tsx
+'use client'
+
+import { ThemeProvider } from 'next-themes'
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
+      {children}
+    </ThemeProvider>
+  )
+}
+```
+
+#### Uso
+
+```typescript
+import { useTheme } from 'next-themes'
+
+const ThemeToggle = () => {
+  const { theme, setTheme } = useTheme()
+
+  return (
+    <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+      {theme === 'dark' ? '☀️' : '🌙'}
+    </button>
+  )
+}
+```
+
+### Framer Motion
+
+**Biblioteca de animações** para transições fluidas e interações.
+
+#### Exemplos de Uso
+
+```typescript
+import { motion, AnimatePresence } from 'framer-motion'
+
+// Animações de entrada
+const FadeIn = ({ children }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+  >
+    {children}
+  </motion.div>
+)
+
+// Animações de lista
+const ListItem = ({ item }) => (
+  <motion.li
+    layout
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.3 }}
+  >
+    {item.name}
+  </motion.li>
+)
+```
+
+## Componentes e Acessibilidade
+
+### React Aria
+
+**Biblioteca de acessibilidade** que fornece hooks e componentes acessíveis.
+
+#### Hooks Principais
+
+```typescript
+import { useButton, useDialog, useMenu } from 'react-aria'
+
+// Botão acessível
+const AccessibleButton = (props) => {
+  const ref = useRef()
+  const { buttonProps } = useButton(props, ref)
+
+  return (
+    <button {...buttonProps} ref={ref}>
+      {props.children}
+    </button>
+  )
+}
+
+// Dialog acessível
+const Modal = (props) => {
+  const ref = useRef()
+  const { dialogProps, titleProps } = useDialog(props, ref)
+
+  return (
+    <div {...dialogProps} ref={ref}>
+      <h2 {...titleProps}>{props.title}</h2>
+      {props.children}
+    </div>
+  )
+}
+```
+
+### React Aria Components
+
+**Componentes prontos** construídos sobre os hooks do React Aria.
+
+```typescript
+import { Button, TextField, Dialog } from 'react-aria-components'
+
+const Form = () => {
+  return (
+    <Dialog>
+      <TextField>
+        <Label>Nome</Label>
+        <Input />
+      </TextField>
+      <Button>Enviar</Button>
+    </Dialog>
+  )
+}
+```
+
+### UntitledUI Icons
+
+**Biblioteca de ícones SVG** moderna e consistente.
+
+#### Uso
+
+```typescript
+import { CheckIcon, UserIcon, SettingsIcon } from '@untitled-ui/icons-react'
+
+const IconExample = () => (
+  <div className="flex space-x-2">
+    <CheckIcon className="w-5 h-5 text-green-500" />
+    <UserIcon className="w-5 h-5 text-blue-500" />
+    <SettingsIcon className="w-5 h-5 text-gray-500" />
+  </div>
+)
+```
+
+## Autenticação e Backend
+
+### Auth0 Next.js SDK
+
+**Autenticação segura** com OAuth2 e login social.
+
+#### Configuração
+
+```typescript
+// lib/auth0.ts
+import { initAuth0 } from '@auth0/nextjs-auth0'
+
+export default initAuth0({
+  secret: process.env.AUTH0_SECRET,
+  issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
+  baseURL: process.env.AUTH0_BASE_URL,
+  clientID: process.env.AUTH0_CLIENT_ID,
+  clientSecret: process.env.AUTH0_CLIENT_SECRET,
+})
+```
+
+#### Middleware de Proteção
+
+```typescript
+// middleware.ts
+import { withMiddlewareAuthRequired } from '@auth0/nextjs-auth0/edge'
+
+export default withMiddlewareAuthRequired()
+
+export const config = {
+  matcher: ['/dashboard/:path*', '/profile/:path*']
+}
+```
+
+#### Hooks de Autenticação
+
+```typescript
+import { useUser, withPageAuthRequired } from '@auth0/nextjs-auth0/client'
+
+const ProfilePage = () => {
+  const { user, error, isLoading } = useUser()
+
+  if (isLoading) return <LoadingSpinner />
+  if (error) return <ErrorMessage />
+
+  return (
+    <div>
+      <h1>Bem-vindo, {user.name}!</h1>
+      <p>Email: {user.email}</p>
+    </div>
+  )
+}
+
+export default withPageAuthRequired(ProfilePage)
+```
+
+### Supabase JS
+
+**Backend-as-a-Service** com PostgreSQL e funcionalidades em tempo real.
+
+#### Configuração
+
+```typescript
+// lib/supabase.ts
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+```
+
+#### Exemplos de Uso
+
+```typescript
+// CRUD básico
+const getUsers = async () => {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+  
+  if (error) throw error
+  return data
+}
+
+// Realtime subscriptions
+const subscribeToChanges = () => {
+  const subscription = supabase
+    .channel('users')
+    .on('postgres_changes', 
+      { event: '*', schema: 'public', table: 'users' },
+      (payload) => {
+        console.log('Change received!', payload)
+      }
+    )
+    .subscribe()
+
+  return subscription
+}
+
+// Storage
+const uploadFile = async (file: File) => {
+  const { data, error } = await supabase.storage
+    .from('avatars')
+    .upload(`${Date.now()}-${file.name}`, file)
+
+  if (error) throw error
+  return data
+}
+```
+
+### Node Fetch
+
+**Fetch isomórfico** para requisições HTTP em qualquer contexto.
+
+```typescript
+import fetch from 'node-fetch'
+
+const apiCall = async (url: string) => {
+  const response = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`)
+  }
+  
+  return response.json()
+}
+```
+
+## Internacionalização (i18n)
+
+### Next Intl 4.3.4
+
+**i18n para Next.js** com suporte ao App Router.
+
+#### Configuração
+
+```typescript
+// i18n.ts
+import { notFound } from 'next/navigation'
+import { getRequestConfig } from 'next-intl/server'
+
+const locales = ['pt-BR', 'en']
+
+export default getRequestConfig(async ({ locale }) => {
+  if (!locales.includes(locale as any)) notFound()
+
+  return {
+    messages: (await import(`./messages/${locale}.json`)).default
+  }
+})
+```
+
+#### Middleware
+
+```typescript
+// middleware.ts
+import createMiddleware from 'next-intl/middleware'
+
+export default createMiddleware({
+  locales: ['pt-BR', 'en'],
+  defaultLocale: 'pt-BR'
+})
+
+export const config = {
+  matcher: ['/((?!api|_next|.*\\..*).*)']
+}
+```
+
+#### Uso em Componentes
+
+```typescript
+import { useTranslations } from 'next-intl'
+
+const WelcomeMessage = () => {
+  const t = useTranslations('common')
+  
+  return (
+    <h1>{t('welcome')}</h1>
+  )
+}
+```
+
+### React Intl 7.1.11
+
+**Formatação avançada** para datas, números e moedas.
+
+```typescript
+import { useIntl } from 'react-intl'
+
+const FormattedContent = () => {
+  const intl = useIntl()
+  
+  const formattedDate = intl.formatDate(new Date(), {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+  
+  const formattedCurrency = intl.formatNumber(1234.56, {
+    style: 'currency',
+    currency: 'BRL'
+  })
+  
+  return (
+    <div>
+      <p>Data: {formattedDate}</p>
+      <p>Valor: {formattedCurrency}</p>
+    </div>
+  )
+}
+```
+
+### Crowdin API Client
+
+**Integração automática** com plataforma de tradução.
+
+```typescript
+// scripts/sync-translations.ts
+import { CrowdinApi } from '@crowdin/crowdin-api-client'
+
+const crowdin = new CrowdinApi({
+  token: process.env.CROWDIN_API_TOKEN!
+})
+
+const syncTranslations = async () => {
+  const projectId = process.env.CROWDIN_PROJECT_ID!
+  
+  // Download latest translations
+  const translations = await crowdin.translationsApi
+    .downloadProjectTranslations(projectId, 'pt-BR')
+  
+  // Save to local file
+  await fs.writeFile('./src/i18n/pt-BR.json', translations)
+}
+```
+
+## Dados e Formulários
+
+### Zod
+
+**Validação de schemas** com integração TypeScript.
+
+#### Schemas de Validação
+
+```typescript
+import { z } from 'zod'
+
+const UserSchema = z.object({
+  name: z.string().min(1, 'Nome é obrigatório'),
+  email: z.string().email('Email inválido'),
+  age: z.number().int().positive('Idade deve ser positiva'),
+  role: z.enum(['admin', 'user', 'guest'])
+})
+
+type User = z.infer<typeof UserSchema>
+
+// Validação
+const validateUser = (data: unknown): User => {
+  return UserSchema.parse(data)
+}
+```
+
+#### Integração com React Hook Form
+
+```typescript
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+
+const UserForm = () => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm<User>({
+    resolver: zodResolver(UserSchema)
+  })
+
+  const onSubmit = (data: User) => {
+    console.log(data)
+  }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <input {...register('name')} />
+      {errors.name && <span>{errors.name.message}</span>}
+      
+      <input {...register('email')} />
+      {errors.email && <span>{errors.email.message}</span>}
+      
+      <button type="submit">Enviar</button>
+    </form>
+  )
+}
+```
+
+### React IMask
+
+**Máscaras para campos** de entrada.
+
+```typescript
+import { IMaskInput } from 'react-imask'
+
+const MaskedInputs = () => {
+  return (
+    <div>
+      {/* CPF */}
+      <IMaskInput
+        mask="000.000.000-00"
+        placeholder="000.000.000-00"
+        className="border p-2"
+      />
+      
+      {/* Telefone */}
+      <IMaskInput
+        mask="(00) 00000-0000"
+        placeholder="(00) 00000-0000"
+        className="border p-2"
+      />
+      
+      {/* Moeda */}
+      <IMaskInput
+        mask={Number}
+        scale={2}
+        radix=","
+        mapToRadix={['.']}
+        placeholder="0,00"
+        className="border p-2"
+      />
+    </div>
+  )
+}
+```
+
+### React Hotkeys Hook
+
+**Atalhos de teclado** para melhorar a experiência do usuário.
+
+```typescript
+import { useHotkeys } from 'react-hotkeys-hook'
+
+const KeyboardShortcuts = () => {
+  // Atalho global
+  useHotkeys('ctrl+k', (e) => {
+    e.preventDefault()
+    openSearch()
+  })
+
+  // Atalho específico do componente
+  useHotkeys('ctrl+s', (e) => {
+    e.preventDefault()
+    saveForm()
+  }, { enableOnFormTags: true })
+
+  return (
+    <div>
+      <p>Pressione Ctrl+K para abrir a busca</p>
+      <p>Pressione Ctrl+S para salvar (quando no formulário)</p>
+    </div>
+  )
+}
+```
+
+## Visualização de Dados
+
+### Recharts 2.7.2
+
+**Gráficos declarativos** responsivos.
+
+```typescript
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts'
+
+const data = [
+  { name: 'Jan', vendas: 4000 },
+  { name: 'Fev', vendas: 3000 },
+  { name: 'Mar', vendas: 2000 },
+  { name: 'Abr', vendas: 2780 },
+]
+
+const SalesChart = () => (
+  <LineChart width={600} height={300} data={data}>
+    <CartesianGrid strokeDasharray="3 3" />
+    <XAxis dataKey="name" />
+    <YAxis />
+    <Tooltip />
+    <Legend />
+    <Line type="monotone" dataKey="vendas" stroke="#8884d8" />
+  </LineChart>
+)
+```
+
+### QR Code Styling
+
+**Códigos QR estilizados** para a marca.
+
+```typescript
+import QRCodeStyling from 'qr-code-styling'
+
+const QRCode = ({ data, size = 200 }) => {
+  const qrCode = new QRCodeStyling({
+    width: size,
+    height: size,
+    data: data,
+    dotsOptions: {
+      color: '#000000',
+      type: 'rounded'
+    },
+    backgroundOptions: {
+      color: '#FFFFFF',
+    },
+    imageOptions: {
+      crossOrigin: 'anonymous',
+      margin: 20
+    }
+  })
+
+  useEffect(() => {
+    qrCode.append(document.getElementById('qr-code'))
+  }, [data])
+
+  return <div id="qr-code" />
+}
+```
+
+## Estado e Navegação
+
+### NProgress
+
+**Barra de progresso** para navegação.
+
+```typescript
+import NProgress from 'nprogress'
+import { useRouter } from 'next/router'
+
+const NavigationProgress = () => {
+  const router = useRouter()
+
+  useEffect(() => {
+    const handleStart = () => NProgress.start()
+    const handleStop = () => NProgress.done()
+
+    router.events.on('routeChangeStart', handleStart)
+    router.events.on('routeChangeComplete', handleStop)
+    router.events.on('routeChangeError', handleStop)
+
+    return () => {
+      router.events.off('routeChangeStart', handleStart)
+      router.events.off('routeChangeComplete', handleStop)
+      router.events.off('routeChangeError', handleStop)
+    }
+  }, [router])
+
+  return null
+}
+```
+
+### Sonner
+
+**Notificações toast** para feedback do usuário.
+
+```typescript
+import { toast } from 'sonner'
+
+const NotificationExample = () => {
+  const handleSuccess = () => {
+    toast.success('Operação realizada com sucesso!')
+  }
+
+  const handleError = () => {
+    toast.error('Erro ao realizar operação')
+  }
+
+  const handlePromise = async () => {
+    toast.promise(
+      saveData(),
+      {
+        loading: 'Salvando...',
+        success: 'Dados salvos!',
+        error: 'Erro ao salvar'
+      }
+    )
+  }
+
+  return (
+    <div>
+      <button onClick={handleSuccess}>Sucesso</button>
+      <button onClick={handleError}>Erro</button>
+      <button onClick={handlePromise}>Promise</button>
+    </div>
+  )
+}
+```
+
+## Utilitários
+
+### JSZip
+
+**Manipulação de arquivos ZIP** no navegador.
+
+```typescript
+import JSZip from 'jszip'
+
+const createZip = async (files: File[]) => {
+  const zip = new JSZip()
+  
+  files.forEach(file => {
+    zip.file(file.name, file)
+  })
+  
+  const content = await zip.generateAsync({ type: 'blob' })
+  
+  // Download
+  const url = URL.createObjectURL(content)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'files.zip'
+  a.click()
+  URL.revokeObjectURL(url)
+}
+```
+
+### Dotenv
+
+**Variáveis de ambiente** para configurações.
+
+```typescript
+import dotenv from 'dotenv'
+
+// Carrega variáveis do arquivo .env
+dotenv.config()
+
+const config = {
+  apiUrl: process.env.API_URL,
+  auth0: {
+    domain: process.env.AUTH0_DOMAIN,
+    clientId: process.env.AUTH0_CLIENT_ID,
+  },
+  supabase: {
+    url: process.env.SUPABASE_URL,
+    key: process.env.SUPABASE_ANON_KEY,
+  }
+}
+```
+
+## Testes e Qualidade
+
+### Jest 30.0.5
+
+**Framework de testes** com suporte completo.
+
+```typescript
+// __tests__/user.test.ts
+import { render, screen, fireEvent } from '@testing-library/react'
+import { UserProfile } from '../components/UserProfile'
+
+describe('UserProfile', () => {
+  it('should display user information', () => {
+    const user = { name: 'John Doe', email: 'john@example.com' }
+    
+    render(<UserProfile user={user} />)
+    
+    expect(screen.getByText('John Doe')).toBeInTheDocument()
+    expect(screen.getByText('john@example.com')).toBeInTheDocument()
+  })
+
+  it('should handle update button click', () => {
+    const mockUpdate = jest.fn()
+    const user = { name: 'John Doe', email: 'john@example.com' }
+    
+    render(<UserProfile user={user} onUpdate={mockUpdate} />)
+    
+    fireEvent.click(screen.getByText('Atualizar'))
+    
+    expect(mockUpdate).toHaveBeenCalledWith(user)
+  })
+})
+```
+
+### React Testing Library
+
+**Testes orientados ao usuário** para componentes React.
+
+```typescript
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+
+const FormTest = () => {
+  it('should submit form with valid data', async () => {
+    const user = userEvent.setup()
+    const mockSubmit = jest.fn()
+    
+    render(<UserForm onSubmit={mockSubmit} />)
+    
+    await user.type(screen.getByLabelText('Nome'), 'John Doe')
+    await user.type(screen.getByLabelText('Email'), 'john@example.com')
+    await user.click(screen.getByRole('button', { name: /enviar/i }))
+    
+    await waitFor(() => {
+      expect(mockSubmit).toHaveBeenCalledWith({
+        name: 'John Doe',
+        email: 'john@example.com'
+      })
+    })
+  })
+}
+```
+
+## Ferramentas de Desenvolvimento
+
+### Prettier
+
+**Formatação automática** de código.
+
+```json
+// .prettierrc
+{
+  "semi": true,
+  "trailingComma": "es5",
+  "singleQuote": true,
+  "printWidth": 80,
+  "tabWidth": 2,
+  "useTabs": false
+}
+```
+
+### PostCSS
+
+**Pipeline de CSS** com plugins.
+
+```javascript
+// postcss.config.js
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+    ...(process.env.NODE_ENV === 'production' ? { cssnano: {} } : {})
+  },
+}
+```
+
+## Conclusão
+
+Esta stack tecnológica foi cuidadosamente escolhida para proporcionar:
+
+- **Performance**: Renderização otimizada e carregamento rápido
+- **Escalabilidade**: Arquitetura que suporta crescimento
+- **Developer Experience**: Ferramentas modernas e produtivas
+- **Qualidade**: Testes robustos e validação de tipos
+- **Acessibilidade**: Componentes acessíveis por padrão
+- **Manutenibilidade**: Código limpo e bem estruturado
+
+A combinação dessas tecnologias cria uma base sólida para o desenvolvimento de aplicações web modernas, seguras e escaláveis.
