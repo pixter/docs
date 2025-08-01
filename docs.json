@@ -21,6 +21,7 @@
               "technologies",
               "development",
               "components",
+              "dynamic-components-tables",
               "dynamic-components-forms",
               "features",
               "deploy"
@@ -40,14 +41,6 @@
               "essentials/code",
               "essentials/images",
               "essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "Ferramentas de IA",
-            "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
             ]
           }
         ]

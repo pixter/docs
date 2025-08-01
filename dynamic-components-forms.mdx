@@ -1,6 +1,6 @@
 ---
-title: DynamicForm
-sidebarTitle: "Componentes dinâmicos - Forms"
+title: "DynamicForm"
+sidebarTitle: "DynamicForm"
 ---
 
 ## Visão Geral
@@ -12,13 +12,15 @@ O **DynamicForm** é um componente de formulário dinâmico e altamente configur
 ## Arquitetura e Funcionamento
 
 ### Como Funciona
-- **Configuração via arquivo `.config.ts`**: O formulário é definido por um array de campos, cada um com suas propriedades específicas.
+
+- **`Configuração via arquivo .config.ts`**: O formulário é definido por um array de campos, cada um com suas propriedades específicas.
 - **Renderização automática**: O componente lê a configuração e monta os campos automaticamente.
 - **Validação integrada**: Suporte a validação com Zod, required, min/max, regex, etc.
 - **Abas e agrupamentos**: Campos podem ser organizados em abas para UX avançada.
 - **Processamento de arquivos**: Suporte nativo para upload e processamento de imagens.
 
 ### Estrutura da Configuração
+
 ```ts
 export const dynamicPageConfig = {
   form: {
@@ -39,6 +41,7 @@ export const dynamicPageConfig = {
 ## Tipos de Campos Suportados
 
 ### 1. **text** - Campo de Texto Simples
+
 ```ts
 {
   key: "name",
@@ -52,6 +55,7 @@ export const dynamicPageConfig = {
 ```
 
 **Propriedades:**
+
 - `key`: identificador único do campo
 - `label`: texto ou chave de tradução
 - `type`: "text"
@@ -61,6 +65,7 @@ export const dynamicPageConfig = {
 - `gridCols`: número de colunas no grid (1-4)
 
 ### 2. **textarea** - Campo de Texto Multilinha
+
 ```ts
 {
   key: "description",
@@ -74,10 +79,12 @@ export const dynamicPageConfig = {
 ```
 
 **Propriedades específicas:**
+
 - `rows`: número de linhas (opcional)
 - `maxLength`: limite de caracteres (opcional)
 
 ### 3. **currency_with_symbol** - Campo Monetário com Símbolo
+
 ```ts
 {
   key: "price",
@@ -92,10 +99,12 @@ export const dynamicPageConfig = {
 ```
 
 **Propriedades específicas:**
+
 - `currencyOptions`: array de símbolos monetários disponíveis
 - `currencyField`: campo que armazena a moeda selecionada
 
 ### 4. **select_search** - Select com Busca
+
 ```ts
 {
   key: "category",
@@ -110,11 +119,13 @@ export const dynamicPageConfig = {
 ```
 
 **Propriedades específicas:**
+
 - `dataSource`: endpoint para buscar opções dinamicamente
 - `options`: array estático de opções (alternativa ao dataSource)
 - `searchPlaceholder`: placeholder para o campo de busca
 
 ### 5. **toggle** - Campo Toggle/Switch
+
 ```ts
 {
   key: "status",
@@ -132,9 +143,11 @@ export const dynamicPageConfig = {
 ```
 
 **Propriedades específicas:**
+
 - `toggleConfig`: configuração dos valores e labels do toggle
 
 ### 6. **file** - Upload de Arquivos
+
 ```ts
 {
   key: "images",
@@ -148,6 +161,7 @@ export const dynamicPageConfig = {
 ```
 
 **Propriedades específicas:**
+
 - `multiple`: permite múltiplos arquivos
 - `accept`: tipos de arquivo aceitos
 - `stylized`: usa estilo customizado para upload
@@ -158,6 +172,7 @@ export const dynamicPageConfig = {
 ## Configuração de Abas
 
 ### Estrutura das Abas
+
 ```ts
 formConfig: {
   title: "Cadastrar Produto",
@@ -190,6 +205,7 @@ formConfig: {
 ```
 
 ### Propriedades das Abas
+
 - `id`: identificador único da aba
 - `label`: texto ou chave de tradução
 - `customComponent`: componente customizado para a aba (opcional)
@@ -200,6 +216,7 @@ formConfig: {
 ## Sistema de Grid
 
 ### Propriedade gridCols
+
 Cada campo pode especificar quantas colunas do grid ele deve ocupar:
 
 ```ts
@@ -224,6 +241,7 @@ Cada campo pode especificar quantas colunas do grid ele deve ocupar:
 ```
 
 **Valores possíveis:**
+
 - `1`: 1/4 da largura
 - `2`: 1/2 da largura
 - `3`: 3/4 da largura
@@ -234,6 +252,7 @@ Cada campo pode especificar quantas colunas do grid ele deve ocupar:
 ## Validação
 
 ### Validação Básica
+
 ```ts
 {
   key: "email",
@@ -250,6 +269,7 @@ Cada campo pode especificar quantas colunas do grid ele deve ocupar:
 ```
 
 ### Validação com Zod
+
 ```ts
 import { z } from 'zod';
 
@@ -268,6 +288,7 @@ export const dynamicPageConfig = {
 ```
 
 ### Tipos de Validação
+
 - **required**: campo obrigatório
 - **min/max**: valores mínimos e máximos
 - **pattern**: regex para validação de formato
@@ -279,6 +300,7 @@ export const dynamicPageConfig = {
 ## Integração com Backend
 
 ### Endpoints de Dados
+
 ```ts
 {
   key: "category",
@@ -288,6 +310,7 @@ export const dynamicPageConfig = {
 ```
 
 ### Submissão de Dados
+
 ```tsx
 const handleSubmit = async (values: FormValues) => {
   try {
@@ -307,6 +330,7 @@ const handleSubmit = async (values: FormValues) => {
 ```
 
 ### Processamento de Arquivos
+
 O DynamicForm processa automaticamente arquivos antes do submit:
 
 ```ts
@@ -435,6 +459,7 @@ export const dynamicPageConfig = {
 ## Uso do Componente
 
 ### Uso Básico
+
 ```tsx
 import { DynamicFormModal } from '@/components/dynamic/DynamicFormModal';
 
@@ -458,6 +483,7 @@ const MyComponent = () => {
 ```
 
 ### Uso com Validação
+
 ```tsx
 const handleSubmit = async (values: FormValues) => {
   try {
@@ -484,6 +510,7 @@ const handleSubmit = async (values: FormValues) => {
 ## Propriedades Avançadas
 
 ### Máscaras de Input
+
 ```ts
 {
   key: "phone",
@@ -494,6 +521,7 @@ const handleSubmit = async (values: FormValues) => {
 ```
 
 ### Campos Condicionais
+
 ```ts
 {
   key: "showAdvanced",
@@ -509,6 +537,7 @@ const handleSubmit = async (values: FormValues) => {
 ```
 
 ### Campos de Repetição
+
 ```ts
 {
   key: "variants",
@@ -522,6 +551,7 @@ const handleSubmit = async (values: FormValues) => {
 ```
 
 ### Componentes Customizados
+
 ```ts
 {
   key: "customComponent",
@@ -539,12 +569,14 @@ const handleSubmit = async (values: FormValues) => {
 ## Estados e Callbacks
 
 ### Estados do Formulário
+
 - `isSubmitting`: formulário está sendo enviado
 - `isDirty`: formulário foi modificado
 - `errors`: erros de validação por campo
 - `values`: valores atuais dos campos
 
 ### Callbacks Disponíveis
+
 - `onSubmit`: chamado quando o formulário é enviado
 - `onChange`: chamado quando qualquer campo muda
 - `onValidate`: chamado para validação customizada
@@ -555,21 +587,25 @@ const handleSubmit = async (values: FormValues) => {
 ## Dicas e Boas Práticas
 
 ### 1. Organização de Campos
+
 - Use `gridCols` para organizar campos em grid responsivo
 - Agrupe campos relacionados em abas
 - Use `hint` para fornecer ajuda contextual
 
 ### 2. Validação
+
 - Sempre valide no frontend e backend
 - Use mensagens de erro claras e específicas
 - Implemente validação em tempo real para melhor UX
 
 ### 3. Performance
+
 - Use `dataSource` para selects com muitas opções
 - Implemente debounce em campos de busca
 - Lazy load para formulários grandes
 
 ### 4. Acessibilidade
+
 - Sempre use `label` e `placeholder`
 - Implemente navegação por teclado
 - Use cores e contrastes adequados
@@ -581,31 +617,37 @@ const handleSubmit = async (values: FormValues) => {
 ### Problemas Comuns
 
 **Campo não aparece:**
+
 - Verifique se o `key` está correto
 - Confirme se o `type` é suportado
 - Verifique se não há erros de sintaxe na configuração
 
 **Validação não funciona:**
+
 - Confirme se o schema Zod está correto
 - Verifique se a função de validação retorna string ou null
 - Teste a validação individual por campo
 
 **Select não carrega opções:**
+
 - Verifique se o `dataSource` está correto
 - Confirme se o endpoint retorna dados no formato esperado
 - Teste o endpoint diretamente
 
 **Upload de arquivo falha:**
+
 - Verifique se o `accept` está correto
 - Confirme se o arquivo não excede `maxSize`
 - Teste com diferentes tipos de arquivo
 
 **Formulário não envia:**
+
 - Verifique se todos os campos obrigatórios estão preenchidos
 - Confirme se não há erros de validação
 - Teste o callback `onSubmit`
 
 ### Debug
+
 ```tsx
 // Adicione logs para debug
 const handleSubmit = async (values: FormValues) => {
@@ -620,6 +662,7 @@ const handleSubmit = async (values: FormValues) => {
 ## Integração com Outros Componentes
 
 ### Com DynamicTable
+
 ```tsx
 // Abrir formulário para editar item da tabela
 const handleEdit = (item: any) => {
@@ -629,6 +672,7 @@ const handleEdit = (item: any) => {
 ```
 
 ### Com DynamicFilters
+
 ```tsx
 // Filtrar dados baseado em valores do formulário
 const handleFilterChange = (filters: any) => {
@@ -641,6 +685,7 @@ const handleFilterChange = (filters: any) => {
 ## Exemplos Práticos
 
 ### Formulário de Produto Completo
+
 ```ts
 export const productFormConfig = {
   title: "Cadastrar Produto",
@@ -728,4 +773,4 @@ export const productFormConfig = {
 
 O DynamicForm é um componente poderoso e flexível que permite criar formulários complexos apenas com configuração. Sua arquitetura baseada em configuração torna o desenvolvimento mais rápido e a manutenção mais fácil, mantendo a consistência visual e funcional em toda a aplicação.
 
-Para mais informações sobre tipos específicos de campos ou configurações avançadas, consulte a documentação dos componentes base ou entre em contato com a equipe de desenvolvimento. 
+Para mais informações sobre tipos específicos de campos ou configurações avançadas, consulte a documentação dos componentes base ou entre em contato com a equipe de desenvolvimento.
