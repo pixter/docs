@@ -1,33 +1,85 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: "Introdução"
+description: "Introdução à API Frontend – Sinerlog"
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+Bem-vindo à documentação oficial da **API de Frontend da Sinerlog**. Esta documentação tem como objetivo orientar desenvolvedores e integradores sobre **como consumir os dados e serviços expostos ao frontend**, garantindo consistência, segurança e alinhamento com as regras de negócio da plataforma Sinerlog.
 
-## Welcome
+---
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+## 🎯  Propósito da API
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+A API frontend foi desenhada para:
 
-## Authentication
+- Expor **dados da sessão autenticada** (usuário, permissões, contas, aplicações).
+- Fornecer **informações contextuais** para personalizar a experiência da interface (ex: menus, roles, configurações de exibição).
+- Permitir **operações específicas** que não dependem diretamente da API de backend, mas que afetam a UI.
+- Servir como ponte entre **Auth0 (autenticação)** e o renderizador do frontend (React, Next.js, etc).
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+---
 
-```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
+## 🔐 Acesso e segurança
+
+Todas as rotas são protegidas por autenticação OAuth2, usando **Auth0 com idToken JWT**.\
+O token deve ser incluído no header `Authorization` como:
+
 ```
+Authorization: Bearer <seu_token_aqui>
+```
+
+A API validará o token antes de responder a qualquer solicitação.
+
+---
+
+## 📦 O que você encontrará nesta documentação
+
+- 📘 **Exemplos de uso com fetch/axios**
+- 🛠️ **Rotas públicas e privadas**
+- 🔒 **Middleware de segurança e controle de roles**
+- 👤 **Formato de payload do usuário**
+- 🧠 **Boas práticas de cache, revalidação e carregamento otimizado**
+- 🧪 **Casos de uso para SSR e SSG com Next.js**
+- 📚 **Modelos de resposta (schemas)**
+
+---
+
+## 🧭 Estrutura das páginas
+
+A documentação está dividida em seções intuitivas:
+
+| Seção                       | Conteúdo                                             |
+| --------------------------- | ---------------------------------------------------- |
+| **Autenticação**            | Como recuperar dados do usuário autenticado          |
+| **Perfil do Usuário**       | Dados completos de perfil, roles, contas             |
+| **Autorização**             | Como validar permissões no frontend                  |
+| **Utilitários de Frontend** | Endpoints que ajudam na renderização ou configuração |
+| **Erros comuns**            | Códigos de status e mensagens esperadas              |
+
+---
+
+## 🚧 Aviso importante
+
+Esta API **não deve ser confundida com a API de backend** da Sinerlog, que lida com lógica de negócio, persistência e integrações externas.\
+A API frontend é voltada exclusivamente para **suporte à camada de apresentação** e segurança de interface.
+
+---
+
+## 🧱 Requisitos
+
+- Cliente OAuth2 válido (via Auth0)
+- Frontend compatível com JWT
+- Conexão HTTPS
+
+---
+
+## 🛠️ Stack envolvida
+
+- Auth0 (Custom DB \+ Actions)
+- Next.js 14 / React 18
+- Token JWT com claims customizados
+- Integração com sessão segura
+- Supabase opcional para dados adicionais
+
+---
+
+Se tiver dúvidas, consulte a seção de **FAQ** ou entre em contato com o time de frontend Sinerlog.
