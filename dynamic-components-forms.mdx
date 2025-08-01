@@ -1,0 +1,731 @@
+---
+title: DynamicForm
+sidebarTitle: "Componentes dinâmicos - Forms"
+---
+
+## Visão Geral
+
+O **DynamicForm** é um componente de formulário dinâmico e altamente configurável, capaz de renderizar qualquer conjunto de campos a partir de uma configuração declarativa. Ele suporta validação, máscaras, campos condicionais, agrupamento em abas, dicas, placeholders, hints, e integração com endpoints de criação/edição.
+
+---
+
+## Arquitetura e Funcionamento
+
+### Como Funciona
+- **Configuração via arquivo `.config.ts`**: O formulário é definido por um array de campos, cada um com suas propriedades específicas.
+- **Renderização automática**: O componente lê a configuração e monta os campos automaticamente.
+- **Validação integrada**: Suporte a validação com Zod, required, min/max, regex, etc.
+- **Abas e agrupamentos**: Campos podem ser organizados em abas para UX avançada.
+- **Processamento de arquivos**: Suporte nativo para upload e processamento de imagens.
+
+### Estrutura da Configuração
+```ts
+export const dynamicPageConfig = {
+  form: {
+    fields: [/* array de campos */],
+    tabs: [/* array de abas */]
+  },
+  formConfig: {
+    title: "Título do formulário",
+    description: "Descrição do formulário",
+    tabs: [/* abas com campos */],
+    fields: [/* campos organizados por aba */]
+  }
+};
+```
+
+---
+
+## Tipos de Campos Suportados
+
+### 1. **text** - Campo de Texto Simples
+```ts
+{
+  key: "name",
+  label: "Nome",
+  type: "text",
+  required: true,
+  placeholder: "Digite o nome",
+  hint: "Nome completo do produto",
+  gridCols: 4
+}
+```
+
+**Propriedades:**
+- `key`: identificador único do campo
+- `label`: texto ou chave de tradução
+- `type`: "text"
+- `required`: obrigatório (true/false)
+- `placeholder`: texto de placeholder
+- `hint`: dica ou ajuda
+- `gridCols`: número de colunas no grid (1-4)
+
+### 2. **textarea** - Campo de Texto Multilinha
+```ts
+{
+  key: "description",
+  label: "Descrição",
+  type: "textarea",
+  required: true,
+  placeholder: "Digite a descrição",
+  hint: "Descrição detalhada do produto",
+  gridCols: 4
+}
+```
+
+**Propriedades específicas:**
+- `rows`: número de linhas (opcional)
+- `maxLength`: limite de caracteres (opcional)
+
+### 3. **currency_with_symbol** - Campo Monetário com Símbolo
+```ts
+{
+  key: "price",
+  label: "Preço padrão",
+  type: "currency_with_symbol",
+  required: true,
+  placeholder: "Digite o preço",
+  hint: "Preço de venda padrão",
+  currencyOptions: ["R$", "US$", "€"],
+  gridCols: 2
+}
+```
+
+**Propriedades específicas:**
+- `currencyOptions`: array de símbolos monetários disponíveis
+- `currencyField`: campo que armazena a moeda selecionada
+
+### 4. **select_search** - Select com Busca
+```ts
+{
+  key: "category",
+  label: "Categoria",
+  type: "select_search",
+  required: true,
+  placeholder: "Selecione uma categoria",
+  hint: "Categoria do produto",
+  dataSource: "/api/data/categories",
+  gridCols: 1
+}
+```
+
+**Propriedades específicas:**
+- `dataSource`: endpoint para buscar opções dinamicamente
+- `options`: array estático de opções (alternativa ao dataSource)
+- `searchPlaceholder`: placeholder para o campo de busca
+
+### 5. **toggle** - Campo Toggle/Switch
+```ts
+{
+  key: "status",
+  label: "Status",
+  type: "toggle",
+  required: true,
+  hint: "Ativo ou inativo",
+  toggleConfig: {
+    trueValue: 1,
+    falseValue: 0,
+    trueLabel: "Ativo",
+    falseLabel: "Inativo"
+  }
+}
+```
+
+**Propriedades específicas:**
+- `toggleConfig`: configuração dos valores e labels do toggle
+
+### 6. **file** - Upload de Arquivos
+```ts
+{
+  key: "images",
+  label: "Imagens do produto",
+  type: "file",
+  multiple: true,
+  accept: "image/*",
+  tab: "imagens",
+  stylized: true
+}
+```
+
+**Propriedades específicas:**
+- `multiple`: permite múltiplos arquivos
+- `accept`: tipos de arquivo aceitos
+- `stylized`: usa estilo customizado para upload
+- `maxSize`: tamanho máximo do arquivo (em bytes)
+
+---
+
+## Configuração de Abas
+
+### Estrutura das Abas
+```ts
+formConfig: {
+  title: "Cadastrar Produto",
+  description: "Preencha os dados do produto",
+  tabs: [
+    { id: 'informacoes', label: 'Informações' },
+    { id: 'imagens', label: 'Imagens' },
+    { id: 'variantes', label: 'Variantes' }
+  ],
+  fields: [
+    // Campos com propriedade 'tab' especificando a aba
+    {
+      key: "name",
+      label: "Nome",
+      type: "text",
+      required: true,
+      tab: 'informacoes',
+      gridCols: 4
+    },
+    {
+      key: "images",
+      label: "Imagens",
+      type: "file",
+      multiple: true,
+      accept: "image/*",
+      tab: "imagens"
+    }
+  ]
+}
+```
+
+### Propriedades das Abas
+- `id`: identificador único da aba
+- `label`: texto ou chave de tradução
+- `customComponent`: componente customizado para a aba (opcional)
+- `customProps`: propriedades customizadas (opcional)
+
+---
+
+## Sistema de Grid
+
+### Propriedade gridCols
+Cada campo pode especificar quantas colunas do grid ele deve ocupar:
+
+```ts
+{
+  key: "name",
+  label: "Nome",
+  type: "text",
+  gridCols: 4  // Ocupa 4 colunas (largura total)
+},
+{
+  key: "sku",
+  label: "SKU",
+  type: "text",
+  gridCols: 1  // Ocupa 1 coluna (1/4 da largura)
+},
+{
+  key: "price",
+  label: "Preço",
+  type: "currency_with_symbol",
+  gridCols: 2  // Ocupa 2 colunas (metade da largura)
+}
+```
+
+**Valores possíveis:**
+- `1`: 1/4 da largura
+- `2`: 1/2 da largura
+- `3`: 3/4 da largura
+- `4`: largura total
+
+---
+
+## Validação
+
+### Validação Básica
+```ts
+{
+  key: "email",
+  label: "Email",
+  type: "text",
+  required: true,
+  validation: (value, allValues) => {
+    if (!value.includes('@')) {
+      return 'Email inválido';
+    }
+    return null;
+  }
+}
+```
+
+### Validação com Zod
+```ts
+import { z } from 'zod';
+
+const productSchema = z.object({
+  name: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
+  price: z.number().positive('Preço deve ser positivo'),
+  email: z.string().email('Email inválido')
+});
+
+export const dynamicPageConfig = {
+  form: {
+    fields: [/* campos */],
+    validation: productSchema
+  }
+};
+```
+
+### Tipos de Validação
+- **required**: campo obrigatório
+- **min/max**: valores mínimos e máximos
+- **pattern**: regex para validação de formato
+- **custom**: função de validação customizada
+- **Zod**: esquemas de validação avançados
+
+---
+
+## Integração com Backend
+
+### Endpoints de Dados
+```ts
+{
+  key: "category",
+  type: "select_search",
+  dataSource: "/api/data/categories"  // Endpoint para buscar categorias
+}
+```
+
+### Submissão de Dados
+```tsx
+const handleSubmit = async (values: FormValues) => {
+  try {
+    const response = await fetch('/api/pages/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(values)
+    });
+    
+    if (response.ok) {
+      // Sucesso
+    }
+  } catch (error) {
+    // Tratamento de erro
+  }
+};
+```
+
+### Processamento de Arquivos
+O DynamicForm processa automaticamente arquivos antes do submit:
+
+```ts
+// Arquivo é convertido para base64
+{
+  name: "imagem.jpg",
+  type: "image/jpeg",
+  data: "base64_encoded_data..."
+}
+```
+
+---
+
+## Exemplo Completo de Configuração
+
+```ts
+export const dynamicPageConfig = {
+  form: {
+    fields: [
+      // Campo de texto simples
+      {
+        key: "name",
+        label: "products.form.fields.name.label",
+        type: "text",
+        required: true,
+        placeholder: "products.form.fields.name.placeholder",
+        hint: "products.form.fields.name.hint",
+        gridCols: 4
+      },
+      
+      // Campo de código
+      {
+        key: "sku",
+        label: "products.form.fields.sku.label",
+        type: "text",
+        required: true,
+        placeholder: "products.form.fields.sku.placeholder",
+        hint: "products.form.fields.sku.hint",
+        gridCols: 1
+      },
+      
+      // Campo monetário
+      {
+        key: "price",
+        label: "products.form.fields.price.label",
+        type: "currency_with_symbol",
+        required: true,
+        placeholder: "products.form.fields.price.placeholder",
+        hint: "products.form.fields.price.hint",
+        currencyOptions: ["R$", "US$", "€"],
+        gridCols: 2
+      },
+      
+      // Select com busca
+      {
+        key: "category",
+        label: "products.form.fields.category.label",
+        type: "select_search",
+        required: true,
+        placeholder: "products.form.fields.category.placeholder",
+        hint: "products.form.fields.category.hint",
+        dataSource: "/api/data/categories",
+        gridCols: 1
+      },
+      
+      // Textarea
+      {
+        key: "description",
+        label: "products.form.fields.description.label",
+        type: "textarea",
+        required: true,
+        placeholder: "products.form.fields.description.placeholder",
+        hint: "products.form.fields.description.hint",
+        gridCols: 4
+      },
+      
+      // Toggle
+      {
+        key: "status",
+        label: "products.form.fields.status.label",
+        type: "toggle",
+        required: true,
+        hint: "products.form.fields.status.hint"
+      }
+    ]
+  },
+  
+  formConfig: {
+    title: "products.form.title",
+    description: "products.form.description",
+    tabs: [
+      { id: 'informacoes', label: 'products.tabs.informacoes' },
+      { id: 'imagens', label: 'products.tabs.imagens' },
+      { id: 'variantes', label: 'products.tabs.variantes' }
+    ],
+    fields: [
+      // Campos organizados por aba
+      {
+        key: "name",
+        label: "products.form.fields.name.label",
+        type: "text",
+        required: true,
+        placeholder: "products.form.fields.name.placeholder",
+        tab: 'informacoes',
+        hint: "products.form.fields.name.hint",
+        gridCols: 4
+      },
+      
+      // Upload de imagens
+      {
+        key: "images",
+        label: "products.form.fields.images.label",
+        type: "file",
+        multiple: true,
+        accept: "image/*",
+        tab: "imagens",
+        stylized: true
+      }
+    ]
+  }
+};
+```
+
+---
+
+## Uso do Componente
+
+### Uso Básico
+```tsx
+import { DynamicFormModal } from '@/components/dynamic/DynamicFormModal';
+
+const MyComponent = () => {
+  const handleSubmit = async (values: FormValues) => {
+    console.log('Dados do formulário:', values);
+    // Enviar para backend
+  };
+
+  return (
+    <DynamicFormModal
+      open={isModalOpen}
+      onClose={() => setIsModalOpen(false)}
+      onSubmit={handleSubmit}
+      config={dynamicPageConfig.form}
+      initialValues={productToEdit}
+      loading={isSubmitting}
+    />
+  );
+};
+```
+
+### Uso com Validação
+```tsx
+const handleSubmit = async (values: FormValues) => {
+  try {
+    const response = await fetch('/api/pages/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(values)
+    });
+    
+    if (response.ok) {
+      toast.success('Produto criado com sucesso!');
+      onClose();
+    } else {
+      toast.error('Erro ao criar produto');
+    }
+  } catch (error) {
+    toast.error('Erro de conexão');
+  }
+};
+```
+
+---
+
+## Propriedades Avançadas
+
+### Máscaras de Input
+```ts
+{
+  key: "phone",
+  label: "Telefone",
+  type: "text",
+  mask: "(99) 99999-9999"
+}
+```
+
+### Campos Condicionais
+```ts
+{
+  key: "showAdvanced",
+  label: "Mostrar opções avançadas",
+  type: "toggle"
+},
+{
+  key: "advancedField",
+  label: "Campo avançado",
+  type: "text",
+  condition: (values) => values.showAdvanced === true
+}
+```
+
+### Campos de Repetição
+```ts
+{
+  key: "variants",
+  label: "Variantes",
+  type: "repeater",
+  fields: [
+    { key: "color", label: "Cor", type: "text" },
+    { key: "size", label: "Tamanho", type: "text" }
+  ]
+}
+```
+
+### Componentes Customizados
+```ts
+{
+  key: "customComponent",
+  label: "Componente Customizado",
+  type: "custom",
+  component: "MyCustomComponent",
+  props: {
+    customProp: "value"
+  }
+}
+```
+
+---
+
+## Estados e Callbacks
+
+### Estados do Formulário
+- `isSubmitting`: formulário está sendo enviado
+- `isDirty`: formulário foi modificado
+- `errors`: erros de validação por campo
+- `values`: valores atuais dos campos
+
+### Callbacks Disponíveis
+- `onSubmit`: chamado quando o formulário é enviado
+- `onChange`: chamado quando qualquer campo muda
+- `onValidate`: chamado para validação customizada
+- `onFileUpload`: chamado quando arquivo é enviado
+
+---
+
+## Dicas e Boas Práticas
+
+### 1. Organização de Campos
+- Use `gridCols` para organizar campos em grid responsivo
+- Agrupe campos relacionados em abas
+- Use `hint` para fornecer ajuda contextual
+
+### 2. Validação
+- Sempre valide no frontend e backend
+- Use mensagens de erro claras e específicas
+- Implemente validação em tempo real para melhor UX
+
+### 3. Performance
+- Use `dataSource` para selects com muitas opções
+- Implemente debounce em campos de busca
+- Lazy load para formulários grandes
+
+### 4. Acessibilidade
+- Sempre use `label` e `placeholder`
+- Implemente navegação por teclado
+- Use cores e contrastes adequados
+
+---
+
+## Troubleshooting
+
+### Problemas Comuns
+
+**Campo não aparece:**
+- Verifique se o `key` está correto
+- Confirme se o `type` é suportado
+- Verifique se não há erros de sintaxe na configuração
+
+**Validação não funciona:**
+- Confirme se o schema Zod está correto
+- Verifique se a função de validação retorna string ou null
+- Teste a validação individual por campo
+
+**Select não carrega opções:**
+- Verifique se o `dataSource` está correto
+- Confirme se o endpoint retorna dados no formato esperado
+- Teste o endpoint diretamente
+
+**Upload de arquivo falha:**
+- Verifique se o `accept` está correto
+- Confirme se o arquivo não excede `maxSize`
+- Teste com diferentes tipos de arquivo
+
+**Formulário não envia:**
+- Verifique se todos os campos obrigatórios estão preenchidos
+- Confirme se não há erros de validação
+- Teste o callback `onSubmit`
+
+### Debug
+```tsx
+// Adicione logs para debug
+const handleSubmit = async (values: FormValues) => {
+  console.log('Valores do formulário:', values);
+  console.log('Configuração:', config);
+  // resto do código
+};
+```
+
+---
+
+## Integração com Outros Componentes
+
+### Com DynamicTable
+```tsx
+// Abrir formulário para editar item da tabela
+const handleEdit = (item: any) => {
+  setItemToEdit(item);
+  setIsModalOpen(true);
+};
+```
+
+### Com DynamicFilters
+```tsx
+// Filtrar dados baseado em valores do formulário
+const handleFilterChange = (filters: any) => {
+  // Aplicar filtros na tabela
+};
+```
+
+---
+
+## Exemplos Práticos
+
+### Formulário de Produto Completo
+```ts
+export const productFormConfig = {
+  title: "Cadastrar Produto",
+  description: "Preencha todos os dados do produto",
+  tabs: [
+    { id: 'basic', label: 'Informações Básicas' },
+    { id: 'details', label: 'Detalhes' },
+    { id: 'media', label: 'Mídia' }
+  ],
+  fields: [
+    // Aba: Informações Básicas
+    {
+      key: "name",
+      label: "Nome do Produto",
+      type: "text",
+      required: true,
+      placeholder: "Digite o nome do produto",
+      tab: "basic",
+      gridCols: 4
+    },
+    {
+      key: "sku",
+      label: "SKU",
+      type: "text",
+      required: true,
+      placeholder: "Código único do produto",
+      tab: "basic",
+      gridCols: 2
+    },
+    {
+      key: "price",
+      label: "Preço",
+      type: "currency_with_symbol",
+      required: true,
+      currencyOptions: ["R$", "US$", "€"],
+      tab: "basic",
+      gridCols: 2
+    },
+    
+    // Aba: Detalhes
+    {
+      key: "description",
+      label: "Descrição",
+      type: "textarea",
+      required: true,
+      placeholder: "Descrição detalhada do produto",
+      tab: "details",
+      gridCols: 4
+    },
+    {
+      key: "weight",
+      label: "Peso (g)",
+      type: "text",
+      required: true,
+      placeholder: "Peso em gramas",
+      tab: "details",
+      gridCols: 1
+    },
+    {
+      key: "dimensions",
+      label: "Dimensões",
+      type: "text",
+      placeholder: "L x A x C (cm)",
+      tab: "details",
+      gridCols: 3
+    },
+    
+    // Aba: Mídia
+    {
+      key: "images",
+      label: "Imagens do Produto",
+      type: "file",
+      multiple: true,
+      accept: "image/*",
+      tab: "media",
+      stylized: true
+    }
+  ]
+};
+```
+
+---
+
+## Conclusão
+
+O DynamicForm é um componente poderoso e flexível que permite criar formulários complexos apenas com configuração. Sua arquitetura baseada em configuração torna o desenvolvimento mais rápido e a manutenção mais fácil, mantendo a consistência visual e funcional em toda a aplicação.
+
+Para mais informações sobre tipos específicos de campos ou configurações avançadas, consulte a documentação dos componentes base ou entre em contato com a equipe de desenvolvimento. 
