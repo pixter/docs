@@ -1,5 +1,656 @@
 ---
-title: "New file"
-description: "Description of your new file."
+title: DynamicTables
 sidebarTitle: "DynamicTables"
 ---
+
+## Visão Geral
+
+O **DynamicTable** é um componente de tabela dinâmico e altamente configurável, capaz de renderizar qualquer estrutura de dados tabulares a partir de uma configuração declarativa. Ele foi projetado para máxima flexibilidade, padronização visual e integração com filtros, paginação, endpoints e ações customizadas.
+
+---
+
+## Arquitetura e Funcionamento
+
+### Como Funciona
+- **Configuração via arquivo `.config.ts`**: Toda a estrutura da tabela é definida por um objeto de configuração, que descreve colunas, ações, ordenação, estados vazios, etc.
+- **Renderização automática**: A tabela lê a configuração e os dados recebidos e monta a interface automaticamente.
+- **Integração com filtros e paginação**: Recebe dados já filtrados/paginados ou pode controlar a paginação internamente.
+- **Ações customizadas**: Permite definir ações por linha (editar, excluir, visualizar, etc) e ações em massa.
+- **Estados responsivos**: Loading, empty state, error states com tratamento automático.
+
+### Estrutura da Configuração
+```ts
+export const dynamicPageConfig = {
+  title: "Título da página",
+  subtitle: "Subtítulo da página",
+  tableName: "nome_da_tabela",
+  primaryKey: "id",
+  tableFields: "id, name, sku, images, category, brand, price, status",
+  table: {
+    columns: [/* array de colunas */],
+    defaultSort: { key: "name", order: "asc" },
+    emptyState: { title: "Título", description: "Descrição" }
+  },
+  buttonGroupFilters: [/* filtros em botões */],
+  endpoints: {/* configuração de endpoints */},
+  permissions: {/* permissões */},
+  actions: {/* ações por linha */},
+  search: {/* configuração de busca */}
+};
+```
+
+---
+
+## Tipos de Colunas Suportados
+
+### 1. **text** - Texto Simples
+```ts
+{
+  key: "name",
+  label: "products.table.columns.name",
+  type: "text",
+  required: false,
+  sortable: true
+}
+```
+
+**Propriedades:**
+- `key`: campo do dado
+- `label`: texto ou chave de tradução
+- `type`: "text"
+- `sortable`: se pode ser ordenada
+- `required`: se é obrigatória
+
+### 2. **product_avatar** - Avatar com Imagem e Informações
+```ts
+{
+  key: "name",
+  label: "products.table.columns.name",
+  type: "product_avatar",
+  required: false,
+  sortable: true,
+  renderConfig: {
+    imageField: "images",
+    nameField: "name",
+    codeField: "sku"
+  }
+}
+```
+
+**Propriedades específicas:**
+- `renderConfig.imageField`: campo que contém a imagem
+- `renderConfig.nameField`: campo que contém o nome
+- `renderConfig.codeField`: campo que contém o código
+
+### 3. **currency** - Valor Monetário
+```ts
+{
+  key: "price",
+  label: "products.table.columns.price",
+  type: "currency",
+  required: false,
+  sortable: true,
+  currencyField: "currency"
+}
+```
+
+**Propriedades específicas:**
+- `currencyField`: campo que contém a moeda
+
+### 4. **status_modern** - Badge de Status
+```ts
+{
+  key: "status",
+  label: "products.table.columns.status",
+  type: "status_modern",
+  required: false,
+  sortable: true,
+  statusConfig: {
+    "0": { label: "common.active", color: "success" },
+    "1": { label: "common.inactive", color: "danger" }
+  }
+}
+```
+
+**Propriedades específicas:**
+- `statusConfig`: mapeamento de valores para labels e cores
+
+---
+
+## Configuração Completa da Tabela
+
+### Estrutura Básica
+```ts
+export const dynamicPageConfig = {
+  // Informações da página
+  title: "products.title",
+  subtitle: "products.subtitle",
+  tableName: "products",
+  primaryKey: "id",
+  tableFields: "id, name, sku, images, productCategoryName, productBrandName, price, currency, totalStockQuantity, status",
+  
+  // Configuração da tabela
+  table: {
+    columns: [
+      // Colunas da tabela
+    ],
+    defaultSort: { key: "name", order: "asc" as const },
+    emptyState: {
+      title: "products.table.emptyState.title",
+      description: "products.table.emptyState.description"
+    }
+  },
+  
+  // Filtros em botões
+  buttonGroupFilters: [
+    { key: "todos", label: "products.buttonGroup.todos", field: "status", value: undefined },
+    { key: "ativo", label: "products.buttonGroup.ativo", field: "status", value: 0 },
+    { key: "inativo", label: "products.buttonGroup.inativo", field: "status", value: 1 }
+  ],
+  
+  // Endpoints da API
+  endpoints: {
+    list: { endpoint: "/api/pages/products", method: "GET" },
+    get: { endpoint: "/api/pages/products", method: "GET" },
+    create: { endpoint: "/api/pages/products", method: "POST" },
+    update: { endpoint: "/api/pages/products", method: "PUT" },
+    delete: { endpoint: "/api/pages/products", method: "DELETE" }
+  },
+  
+  // Permissões
+  permissions: {
+    canView: true,
+    canEdit: true,
+    canDelete: true
+  },
+  
+  // Botão de adicionar
+  addButton: {
+    label: "products.addButton",
+    show: true
+  },
+  
+  // Ações por linha
+  actions: {
+    row: [
+      {
+        key: "edit",
+        label: "products.actions.edit",
+        permission: "canEdit"
+      },
+      {
+        key: "delete",
+        label: "products.actions.delete",
+        permission: "canDelete"
+      }
+    ]
+  },
+  
+  // Configuração de busca
+  search: {
+    placeholder: "products.search.placeholder",
+    fields: ["name", "productCategoryName", "productBrandName", "sku", "status"]
+  }
+};
+```
+
+---
+
+## Configuração de Endpoints
+
+### Estrutura dos Endpoints
+```ts
+endpoints: {
+  list: {
+    endpoint: "/api/pages/products",
+    method: "GET"
+  },
+  get: {
+    endpoint: "/api/pages/products",
+    method: "GET"
+  },
+  create: {
+    endpoint: "/api/pages/products",
+    method: "POST"
+  },
+  update: {
+    endpoint: "/api/pages/products",
+    method: "PUT"
+  },
+  delete: {
+    endpoint: "/api/pages/products",
+    method: "DELETE"
+  }
+}
+```
+
+### Endpoints Suportados
+- **list**: Buscar lista paginada
+- **get**: Buscar item específico
+- **create**: Criar novo item
+- **update**: Atualizar item existente
+- **delete**: Excluir item
+
+---
+
+## Sistema de Permissões
+
+### Configuração de Permissões
+```ts
+permissions: {
+  canView: true,
+  canEdit: true,
+  canDelete: true
+}
+```
+
+### Permissões Disponíveis
+- `canView`: Permite visualizar a tabela
+- `canEdit`: Permite editar itens
+- `canDelete`: Permite excluir itens
+- `canCreate`: Permite criar novos itens
+
+---
+
+## Filtros e Busca
+
+### Filtros em Botões (ButtonGroup)
+```ts
+buttonGroupFilters: [
+  { key: "todos", label: "products.buttonGroup.todos", field: "status", value: undefined },
+  { key: "ativo", label: "products.buttonGroup.ativo", field: "status", value: 0 },
+  { key: "inativo", label: "products.buttonGroup.inativo", field: "status", value: 1 }
+]
+```
+
+### Configuração de Busca
+```ts
+search: {
+  placeholder: "products.search.placeholder",
+  fields: [
+    "name",
+    "productCategoryName", 
+    "productBrandName",
+    "sku",
+    "status"
+  ]
+}
+```
+
+**Propriedades:**
+- `placeholder`: texto do campo de busca
+- `fields`: campos onde a busca será realizada
+
+---
+
+## Ações por Linha
+
+### Configuração de Ações
+```ts
+actions: {
+  row: [
+    {
+      key: "edit",
+      label: "products.actions.edit",
+      permission: "canEdit"
+    },
+    {
+      key: "delete",
+      label: "products.actions.delete",
+      permission: "canDelete"
+    },
+    {
+      key: "view",
+      label: "products.actions.view",
+      permission: "canView"
+    }
+  ]
+}
+```
+
+### Tipos de Ações
+- **edit**: Editar item
+- **delete**: Excluir item
+- **view**: Visualizar item
+- **custom**: Ação customizada
+
+### Permissões por Ação
+Cada ação pode ter uma permissão específica que controla se ela será exibida.
+
+---
+
+## Estados da Tabela
+
+### Empty State
+```ts
+emptyState: {
+  title: "products.table.emptyState.title",
+  description: "products.table.emptyState.description"
+}
+```
+
+### Loading State
+O componente automaticamente mostra um skeleton durante o carregamento.
+
+### Error State
+Tratamento automático de erros com mensagens apropriadas.
+
+---
+
+## Paginação e Ordenação
+
+### Configuração de Ordenação
+```ts
+defaultSort: { key: "name", order: "asc" as const }
+```
+
+### Paginação
+- Controle automático de páginas
+- Seleção de itens por página
+- Contador de resultados
+- Navegação entre páginas
+
+---
+
+## Exemplo Completo de Configuração
+
+```ts
+export const dynamicPageConfig = {
+  // Informações básicas
+  title: "products.title",
+  subtitle: "products.subtitle",
+  tableName: "products",
+  primaryKey: "id",
+  tableFields: "id, name, sku, images, productCategoryName, productBrandName, price, currency, totalStockQuantity, status",
+  
+  // Configuração da tabela
+  table: {
+    columns: [
+      // Produto com avatar
+      { 
+        key: "name", 
+        label: "products.table.columns.name", 
+        type: "product_avatar", 
+        required: false, 
+        sortable: true,
+        renderConfig: {
+          imageField: "images",
+          nameField: "name",
+          codeField: "sku"
+        }
+      },
+      
+      // Categoria
+      { 
+        key: "productCategoryName", 
+        label: "products.table.columns.category", 
+        type: "text", 
+        required: false, 
+        sortable: true 
+      },
+      
+      // Marca
+      { 
+        key: "productBrandName", 
+        label: "products.table.columns.brand", 
+        type: "text", 
+        required: false, 
+        sortable: true 
+      },
+      
+      // Preço
+      { 
+        key: "price", 
+        label: "products.table.columns.price", 
+        type: "currency", 
+        required: false, 
+        sortable: true, 
+        currencyField: "currency" 
+      },
+      
+      // Estoque
+      { 
+        key: "totalStockQuantity", 
+        label: "products.table.columns.stock", 
+        type: "text", 
+        required: false, 
+        sortable: true 
+      },
+      
+      // Status
+      { 
+        key: "status", 
+        label: "products.table.columns.status", 
+        type: "status_modern", 
+        required: false, 
+        sortable: true, 
+        statusConfig: {
+          "0": { label: "common.active", color: "success" },
+          "1": { label: "common.inactive", color: "danger" }
+        }
+      }
+    ],
+    
+    // Ordenação padrão
+    defaultSort: { key: "name", order: "asc" as const },
+    
+    // Estado vazio
+    emptyState: {
+      title: "products.table.emptyState.title",
+      description: "products.table.emptyState.description"
+    }
+  },
+  
+  // Filtros em botões
+  buttonGroupFilters: [
+    { key: "todos", label: "products.buttonGroup.todos", field: "status", value: undefined },
+    { key: "ativo", label: "products.buttonGroup.ativo", field: "status", value: 0 },
+    { key: "inativo", label: "products.buttonGroup.inativo", field: "status", value: 1 }
+  ],
+  
+  // Endpoints
+  endpoints: {
+    list: { endpoint: "/api/pages/products", method: "GET" },
+    get: { endpoint: "/api/pages/products", method: "GET" },
+    create: { endpoint: "/api/pages/products", method: "POST" },
+    update: { endpoint: "/api/pages/products", method: "PUT" },
+    delete: { endpoint: "/api/pages/products", method: "DELETE" }
+  },
+  
+  // Permissões
+  permissions: {
+    canView: true,
+    canEdit: true,
+    canDelete: true
+  },
+  
+  // Botão de adicionar
+  addButton: {
+    label: "products.addButton",
+    show: true
+  },
+  
+  // Ações por linha
+  actions: {
+    row: [
+      {
+        key: "edit",
+        label: "products.actions.edit",
+        permission: "canEdit"
+      },
+      {
+        key: "delete",
+        label: "products.actions.delete",
+        permission: "canDelete"
+      }
+    ]
+  },
+  
+  // Configuração de busca
+  search: {
+    placeholder: "products.search.placeholder",
+    fields: [
+      "name",
+      "productCategoryName",
+      "productBrandName", 
+      "sku",
+      "status"
+    ]
+  }
+};
+```
+
+---
+
+## Uso do Componente
+
+### Uso Básico
+```tsx
+import { DynamicTable } from '@/components/dynamic/DynamicTable';
+
+const MyPage = () => {
+  return (
+    <DynamicTable
+      title="Produtos"
+      items={products}
+      loading={isLoading}
+      totalCount={totalProducts}
+      // ... outras props
+    />
+  );
+};
+```
+
+### Props Principais
+- `title`: Título da tabela
+- `items`: Array de dados
+- `loading`: Estado de carregamento
+- `totalCount`: Total de itens
+- `currentPage`: Página atual
+- `totalPages`: Total de páginas
+- `sortDescriptor`: Descritor de ordenação
+- `setSortDescriptor`: Função para mudar ordenação
+
+---
+
+## Integração com Backend
+
+### Estrutura de Dados Esperada
+```ts
+interface TableItem {
+  id: string;
+  name: string;
+  sku: string;
+  images?: string[];
+  productCategoryName?: string;
+  productBrandName?: string;
+  price?: number;
+  currency?: string;
+  totalStockQuantity?: number;
+  status?: number;
+  [key: string]: any;
+}
+```
+
+### Resposta da API
+```ts
+interface ApiResponse {
+  data: TableItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+```
+
+---
+
+## Dicas e Boas Práticas
+
+### 1. Configuração de Colunas
+- Use tipos de coluna apropriados para cada dado
+- Configure `sortable: true` apenas para campos que podem ser ordenados
+- Use `renderConfig` para personalizar a renderização
+
+### 2. Performance
+- Configure `tableFields` para buscar apenas os campos necessários
+- Use paginação para grandes volumes de dados
+- Implemente cache no backend quando possível
+
+### 3. UX
+- Configure `emptyState` com mensagens claras
+- Use `buttonGroupFilters` para filtros comuns
+- Configure permissões adequadamente
+
+### 4. Internacionalização
+- Use chaves de tradução para todos os textos
+- Configure labels dinamicamente baseado no locale
+
+---
+
+## Troubleshooting
+
+### Problemas Comuns
+
+**Coluna não aparece:**
+- Verifique se o `key` existe nos dados
+- Confirme se o `type` é suportado
+- Verifique se não há erros de sintaxe na configuração
+
+**Ordenação não funciona:**
+- Configure `sortable: true` na coluna
+- Implemente ordenação no backend
+- Verifique se o endpoint suporta parâmetros de ordenação
+
+**Ações não aparecem:**
+- Verifique as permissões do usuário
+- Confirme se a ação está configurada em `actions.row`
+- Verifique se o `permission` está correto
+
+**Busca não funciona:**
+- Configure os `fields` corretamente em `search`
+- Implemente busca no backend
+- Verifique se os campos existem nos dados
+
+**Paginação não funciona:**
+- Configure `totalCount` corretamente
+- Implemente paginação no backend
+- Verifique se `currentPage` e `totalPages` estão corretos
+
+### Debug
+```tsx
+// Adicione logs para debug
+console.log('Configuração:', dynamicPageConfig);
+console.log('Dados:', items);
+console.log('Estado:', { loading, currentPage, totalPages });
+```
+
+---
+
+## Integração com Outros Componentes
+
+### Com DynamicForm
+```tsx
+// Abrir formulário para editar item
+const handleEdit = (item: any) => {
+  setItemToEdit(item);
+  setIsFormModalOpen(true);
+};
+```
+
+### Com DynamicFilters
+```tsx
+// Aplicar filtros na tabela
+const handleFilterChange = (filters: any) => {
+  setFilterValues(filters);
+  refetch();
+};
+```
+
+---
+
+## Conclusão
+
+O DynamicTable é um componente poderoso e flexível que permite criar tabelas complexas apenas com configuração. Sua arquitetura baseada em configuração torna o desenvolvimento mais rápido e a manutenção mais fácil, mantendo a consistência visual e funcional em toda a aplicação.
+
+Para mais informações sobre tipos específicos de colunas ou configurações avançadas, consulte a documentação dos componentes base ou entre em contato com a equipe de desenvolvimento. 
