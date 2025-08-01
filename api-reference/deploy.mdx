@@ -1,0 +1,746 @@
+---
+title: Deploy e Infraestrutura
+sidebarTitle: "Deploy e Infraestrutura"
+---
+
+## Visão Geral
+
+O Sinerlog Frontend Global utiliza uma infraestrutura moderna e escalável para deploy e distribuição. O sistema é projetado para funcionar em múltiplos ambientes com configurações específicas para cada contexto.
+
+## Ambientes
+
+### Desenvolvimento (Development)
+
+**Propósito**: Ambiente local para desenvolvimento e testes
+
+**Configuração**:
+```bash
+# Executar localmente
+bun run dev
+
+# Acessar
+http://localhost:3000
+```
+
+**Variáveis de Ambiente**:
+```env
+NODE_ENV=development
+NEXT_PUBLIC_API_URL=http://localhost:3000/api
+NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-local-anon-key
+```
+
+**Características**:
+- Hot reload automático
+- Debugging avançado
+- Logs detalhados
+- Sem otimizações de produção
+
+### Staging
+
+**Propósito**: Ambiente de testes e validação antes da produção
+
+**URL**: `https://staging.sinerlog.com`
+
+**Configuração**:
+```bash
+# Build para staging
+bun run build:staging
+
+# Deploy automático via CI/CD
+```
+
+**Variáveis de Ambiente**:
+```env
+NODE_ENV=staging
+NEXT_PUBLIC_API_URL=https://staging-api.sinerlog.com
+NEXT_PUBLIC_SUPABASE_URL=https://staging.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=staging-anon-key
+AUTH0_ISSUER_BASE_URL=https://staging.auth0.com
+```
+
+**Características**:
+- Dados de teste
+- Performance similar à produção
+- Monitoramento ativo
+- Deploy automático a cada merge
+
+### Produção
+
+**Propósito**: Ambiente final para usuários
+
+**URL**: `https://app.sinerlog.com`
+
+**Configuração**:
+```bash
+# Build otimizado
+bun run build
+
+# Deploy via CI/CD
+```
+
+**Variáveis de Ambiente**:
+```env
+NODE_ENV=production
+NEXT_PUBLIC_API_URL=https://api.sinerlog.com
+NEXT_PUBLIC_SUPABASE_URL=https://production.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=production-anon-key
+AUTH0_ISSUER_BASE_URL=https://production.auth0.com
+```
+
+**Características**:
+- Otimizações de performance
+- CDN global
+- Monitoramento em tempo real
+- Backup automático
+
+## CI/CD Pipeline
+
+### GitHub Actions
+
+#### Workflow Principal
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'bun'
+      
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      
+      - name: Install dependencies
+        run: bun install
+      
+      - name: Run tests
+        run: bun run test
+      
+      - name: Type check
+        run: bun run type-check
+      
+      - name: Lint
+        run: bun run lint
+      
+      - name: Build
+        run: bun run build
+
+  deploy-staging:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'bun'
+      
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      
+      - name: Install dependencies
+        run: bun install
+      
+      - name: Build
+        run: bun run build
+        env:
+          NODE_ENV: staging
+          NEXT_PUBLIC_API_URL: ${{ secrets.STAGING_API_URL }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+      
+      - name: Deploy to Staging
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+
+  deploy-production:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'bun'
+      
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      
+      - name: Install dependencies
+        run: bun install
+      
+      - name: Build
+        run: bun run build
+        env:
+          NODE_ENV: production
+          NEXT_PUBLIC_API_URL: ${{ secrets.PRODUCTION_API_URL }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.PRODUCTION_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PRODUCTION_SUPABASE_ANON_KEY }}
+      
+      - name: Deploy to Production
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+```
+
+#### Workflow de Qualidade
+```yaml
+# .github/workflows/quality.yml
+name: Quality Check
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'bun'
+      
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      
+      - name: Install dependencies
+        run: bun install
+      
+      - name: Run tests with coverage
+        run: bun run test:coverage
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+      
+      - name: Check bundle size
+        run: bun run analyze
+      
+      - name: Security audit
+        run: bun audit
+```
+
+### Vercel (Plataforma de Deploy)
+
+#### Configuração do Projeto
+```json
+// vercel.json
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "functions": {
+    "app/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/old-path",
+      "destination": "/new-path",
+      "permanent": true
+    }
+  ]
+}
+```
+
+#### Variáveis de Ambiente no Vercel
+```bash
+# Produção
+NEXT_PUBLIC_API_URL=https://api.sinerlog.com
+NEXT_PUBLIC_SUPABASE_URL=https://production.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-production-key
+AUTH0_SECRET=your-auth0-secret
+AUTH0_BASE_URL=https://app.sinerlog.com
+AUTH0_ISSUER_BASE_URL=https://your-domain.auth0.com
+AUTH0_CLIENT_ID=your-client-id
+AUTH0_CLIENT_SECRET=your-client-secret
+
+# Staging
+NEXT_PUBLIC_API_URL=https://staging-api.sinerlog.com
+NEXT_PUBLIC_SUPABASE_URL=https://staging.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-staging-key
+```
+
+## Configurações de Build
+
+### Next.js Configuration
+```javascript
+// next.config.js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // Configurações de build
+  output: 'standalone',
+  
+  // Otimizações de imagem
+  images: {
+    domains: ['your-domain.com', 'supabase.co'],
+    formats: ['image/webp', 'image/avif'],
+  },
+  
+  // Configurações de i18n
+  i18n: {
+    locales: ['pt-BR', 'en'],
+    defaultLocale: 'pt-BR',
+    localeDetection: true,
+  },
+  
+  // Headers de segurança
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
+          },
+        ],
+      },
+    ]
+  },
+  
+  // Configurações de redirecionamento
+  async redirects() {
+    return [
+      {
+        source: '/old-page',
+        destination: '/new-page',
+        permanent: true,
+      },
+    ]
+  },
+  
+  // Configurações de rewrites
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: '/api/:path*',
+      },
+    ]
+  },
+  
+  // Configurações de experimental
+  experimental: {
+    appDir: true,
+    serverComponentsExternalPackages: ['@prisma/client'],
+  },
+  
+  // Configurações de webpack
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // Otimizações customizadas
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+      }
+    }
+    
+    return config
+  },
+}
+
+module.exports = nextConfig
+```
+
+### Scripts de Build
+```json
+// package.json
+{
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "build:staging": "NODE_ENV=staging next build",
+    "build:production": "NODE_ENV=production next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "analyze": "ANALYZE=true next build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  }
+}
+```
+
+## Monitoramento e Analytics
+
+### Vercel Analytics
+```typescript
+// lib/analytics.ts
+import { Analytics } from '@vercel/analytics/react'
+
+export function AnalyticsWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      {children}
+      <Analytics />
+    </>
+  )
+}
+```
+
+### Error Tracking
+```typescript
+// lib/error-tracking.ts
+import * as Sentry from '@sentry/nextjs'
+
+Sentry.init({
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  environment: process.env.NODE_ENV,
+  tracesSampleRate: 1.0,
+})
+
+export function captureException(error: Error, context?: any) {
+  Sentry.captureException(error, {
+    extra: context,
+  })
+}
+```
+
+### Performance Monitoring
+```typescript
+// lib/performance.ts
+export function reportWebVitals(metric: any) {
+  if (process.env.NODE_ENV === 'production') {
+    // Enviar métricas para serviço de analytics
+    console.log('Web Vitals:', metric)
+  }
+}
+```
+
+## Segurança
+
+### Headers de Segurança
+```typescript
+// middleware.ts
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+
+export function middleware(request: NextRequest) {
+  const response = NextResponse.next()
+
+  // Headers de segurança
+  response.headers.set('X-Frame-Options', 'DENY')
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('Referrer-Policy', 'origin-when-cross-origin')
+  response.headers.set('X-XSS-Protection', '1; mode=block')
+  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+
+  return response
+}
+
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
+}
+```
+
+### Content Security Policy
+```typescript
+// lib/csp.ts
+export const cspHeader = `
+  default-src 'self';
+  script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src 'self' https://fonts.gstatic.com;
+  img-src 'self' data: https:;
+  connect-src 'self' https://api.sinerlog.com https://*.supabase.co;
+  frame-ancestors 'none';
+`
+```
+
+## Backup e Recuperação
+
+### Estratégia de Backup
+```typescript
+// scripts/backup.ts
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
+
+export async function createBackup() {
+  try {
+    // Backup de dados críticos
+    const { data: users } = await supabase
+      .from('users')
+      .select('*')
+    
+    const { data: faturas } = await supabase
+      .from('faturas')
+      .select('*')
+    
+    const backup = {
+      timestamp: new Date().toISOString(),
+      users,
+      faturas,
+    }
+    
+    // Salvar backup
+    await supabase
+      .from('backups')
+      .insert(backup)
+    
+    console.log('Backup criado com sucesso')
+  } catch (error) {
+    console.error('Erro ao criar backup:', error)
+  }
+}
+```
+
+### Script de Recuperação
+```typescript
+// scripts/restore.ts
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
+
+export async function restoreFromBackup(backupId: string) {
+  try {
+    // Buscar backup
+    const { data: backup } = await supabase
+      .from('backups')
+      .select('*')
+      .eq('id', backupId)
+      .single()
+    
+    if (!backup) {
+      throw new Error('Backup não encontrado')
+    }
+    
+    // Restaurar dados
+    if (backup.users) {
+      await supabase
+        .from('users')
+        .upsert(backup.users)
+    }
+    
+    if (backup.faturas) {
+      await supabase
+        .from('faturas')
+        .upsert(backup.faturas)
+    }
+    
+    console.log('Restauração concluída com sucesso')
+  } catch (error) {
+    console.error('Erro na restauração:', error)
+  }
+}
+```
+
+## Performance
+
+### Otimizações de Build
+```typescript
+// next.config.js
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+})
+
+const nextConfig = {
+  // Otimizações
+  swcMinify: true,
+  compress: true,
+  
+  // Configurações de cache
+  generateEtags: false,
+  
+  // Configurações de imagens
+  images: {
+    minimumCacheTTL: 60,
+    formats: ['image/webp', 'image/avif'],
+  },
+  
+  // Configurações de experimental
+  experimental: {
+    optimizeCss: true,
+    scrollRestoration: true,
+  },
+}
+
+module.exports = withBundleAnalyzer(nextConfig)
+```
+
+### Lazy Loading
+```typescript
+// Componentes carregados sob demanda
+import dynamic from 'next/dynamic'
+
+const HeavyComponent = dynamic(() => import('./HeavyComponent'), {
+  loading: () => <div>Carregando...</div>,
+  ssr: false,
+})
+
+const Analytics = dynamic(() => import('./Analytics'), {
+  ssr: false,
+})
+```
+
+### Code Splitting
+```typescript
+// Divisão automática de código
+const UserManagement = dynamic(() => import('./UserManagement'), {
+  loading: () => <LoadingSpinner />,
+})
+
+const FaturaManagement = dynamic(() => import('./FaturaManagement'), {
+  loading: () => <LoadingSpinner />,
+})
+```
+
+## Troubleshooting
+
+### Problemas Comuns
+
+#### Erro de Build
+```bash
+# Limpar cache
+rm -rf .next
+rm -rf node_modules
+bun install
+bun run build
+```
+
+#### Erro de Deploy
+```bash
+# Verificar logs
+vercel logs
+
+# Verificar variáveis de ambiente
+vercel env ls
+
+# Re-deploy
+vercel --prod
+```
+
+#### Performance Lenta
+```bash
+# Analisar bundle
+bun run analyze
+
+# Verificar métricas
+vercel analytics
+```
+
+### Logs e Debugging
+```typescript
+// lib/logger.ts
+export const logger = {
+  info: (message: string, data?: any) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[INFO] ${message}`, data)
+    }
+  },
+  error: (message: string, error?: any) => {
+    console.error(`[ERROR] ${message}`, error)
+    // Enviar para serviço de monitoramento
+  },
+  warn: (message: string, data?: any) => {
+    console.warn(`[WARN] ${message}`, data)
+  },
+}
+```
+
+## Conclusão
+
+A infraestrutura de deploy do Sinerlog Frontend Global oferece:
+
+- **Automação**: CI/CD completo
+- **Segurança**: Headers e políticas de segurança
+- **Performance**: Otimizações de build e runtime
+- **Monitoramento**: Analytics e error tracking
+- **Escalabilidade**: CDN global e cache inteligente
+- **Confiabilidade**: Backup e recuperação automáticos
+
+Para contribuir com melhorias na infraestrutura, consulte a documentação das ferramentas utilizadas e siga as melhores práticas estabelecidas. 

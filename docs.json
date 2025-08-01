@@ -57,7 +57,9 @@
               "api-reference/architecture",
               "api-reference/technologies",
               "api-reference/development",
-              "api-reference/components"
+              "api-reference/components",
+              "api-reference/features",
+              "api-reference/deploy"
             ]
           },
           {
