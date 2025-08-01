@@ -16,9 +16,13 @@
           {
             "group": "Comece por aqui",
             "pages": [
-              "index",
-              "quickstart",
-              "technologies"
+              "introduction",
+              "architecture",
+              "technologies",
+              "development",
+              "components",
+              "features",
+              "deploy"
             ]
           },
           {
